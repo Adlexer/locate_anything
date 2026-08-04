@@ -77,4 +77,16 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - 后续：a) 降采样 1080p 帧重训一版对比电动车检出；b) 人工抽查 30-50 条伪标签后二轮训练；c) 真实业务评测集量化 F1。
 ## Suggestions
 
-- 下一步建议从「真实业务图批量验证 + 服务封装（FastAPI/locateanything_worker + infer.py）」或「LoRA 微调」或「评估复现（Rex-Omni-EvalData/ScreenSpot-Pro）」三选一推进；详细待办见 reports/02_todo_and_suggestions.md
+- **真实标注反馈闭环**：visualize_yolo.py 抽查修正伪标签（30-50 条，重点 scooter/bicycle）→ build_train_jsonl 重建 → LoRA 重训 → eval_det.py 出真实 F1（当前 1.000 为自洽口径，人工 GT 后才有意义）。
+- **高分辨率帧降采样**（≤1280px）再入训，否则 seq=2048 下被丢弃（本次 1080p 帧即被丢）。
+- **类别策略**：业务只要两轮车则合并 bicycle→electric scooter（--merge-two-wheeler）。
+- **部署**：大图优先 slow；hybrid 待大图入训后再启用。
+- **评估统一口径**：scripts/eval/eval_det.py（P/R/F1@IoU + F1@Mean，与论文口径一致），避免临时脚本各测各的。
+
+### 待办
+
+- [ ] 推送 feat/codex/lora 至 origin
+- [ ] 人工标注修正闭环
+- [ ] run_v2（降采样）重训 + 真实 F1 对比
+- [ ] fast/hybrid 大图回归复测
+- [ ] 服务化/批量推理

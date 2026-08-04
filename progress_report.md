@@ -56,9 +56,21 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 
 ## Next Step
 
-- 待用户确认：a) 真实业务图/视频批量推理或服务封装（FastAPI）；b) LoRA/全参微调；c) 评估复现（详见 reports/02_todo_and_suggestions.md）
+### 建议（按优先级）
 
----
+1. **真实标注反馈闭环**（最有价值）：用 `scripts/annotation/visualize_yolo.py` 抽查/人工修正 30-50 条伪标签（重点 scooter/bicycle 混淆）→ `build_train_jsonl.py` 重建 train/val → LoRA 重训 → `scripts/eval/eval_det.py` 出**真实** F1（当前 holdout 1.000 是自洽口径，偏乐观）；
+2. **高分辨率帧先降采样**（≤1280px，视觉 token<2048）再入训，否则 seq=2048 下 1080p 帧被训练丢弃（本次已验证）；
+3. **类别策略**：业务只关心「两轮车」时用 `--merge-two-wheeler` 合并 bicycle→electric scooter，降子类噪声；
+4. **部署**：1080p 大图推理优先 `generation-mode=slow`；待大图入训后再评估 hybrid；
+5. 服务化（FastAPI / locateanything_worker + infer.py）或批量推理。
+
+### 待办清单
+
+- [ ] 推送 `feat/codex/lora` 至 origin（b3eaab8, 6c09320）
+- [ ] 人工伪标签修正（visualize_yolo.py 抽查 → 改 YOLO txt → 重建 JSONL/recipe）
+- [ ] 降采样脚本 + run_v2 重训 + eval_det 真实对比
+- [ ] 大图入训后复测 fast/hybrid 解码回归
+- [ ] 服务化 / 批量推理
 
 ## User Requests
 
