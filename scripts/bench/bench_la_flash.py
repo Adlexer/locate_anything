@@ -7,7 +7,7 @@ Measures wall time, decode stats and peak GPU memory for:
 at batch sizes 1 and 4, max_new_tokens 8192.
 
 Run inside the WSL `locate_anything` conda env:
-    python /mnt/c/Dev/locate_anything/scripts/bench_la_flash.py
+    python /mnt/c/Dev/locate_anything/scripts/bench/bench_la_flash.py
 """
 import json
 import shutil

@@ -21,6 +21,7 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 ---
 
 - [2026-08-04] LoRA/SFT 预研收尾：conda locate_anything_sft（clone 自 locate_anything）就绪；官方 LoRA 微调管线在 5060 Ti 16GB 端到端验证通过（LoRA r=64 + sdpa + seq=2048 + grad ckpt，13.05s/it，峰值显存 16,136MB，trainable 119,734,272），微调 checkpoint 可被 scripts/infer.py 直接加载并正确推理（5 框）；定位 DeepSpeed 0.15.4 Blackwell sm_120 JIT 编译 bug（compute_1.）并给出 torch_adam 绕行方案；报告 reports/05_lora_sft_research.md 落盘
+- [2026-08-04] scripts 目录整理 + LoRA 训练启动/监控脚本交付：scripts/ 重组为 infer/bench/train/env/smoke 子目录（删除 .b64 残留、verify_*.py→.sh），新增 scripts/train/{train_lora.sh,train_watch.sh,ds_z1_torchadam.json,README.md} 与 scripts/README.md；train_lora.sh 端到端验证（1 步训练成功、断点续训检测、done.txt 提示），train_watch.sh 提供 tail/loss/gpu/tensorboard/checkpoints 监控
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线
@@ -44,6 +45,8 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - 报告：reports/05_lora_sft_research.md（SFT/LoRA 原理 + 官方管线 + 显存估算与实测 + 本机方案 + 踩坑清单）
 - 环境：WSL conda locate_anything_sft（clone 自 locate_anything，已补装 nvidia-ml-py/sortedcontainers/tensorboard）
 - 冒烟产物：WSL ~/lora_smoke/（recipe.json / data.jsonl / ds_z1_torchadam.json / run.log / work_dirs 全量 checkpoint + 推理结果）
+- 训练脚本：scripts/train/train_lora.sh（启动/续训/覆盖保护）、train_watch.sh（监控）、ds_z1_torchadam.json（绕 sm_120 bug）、train/README.md
+- 目录索引：scripts/README.md
 ## Remaining Issues
 
 - [已解决] /mnt/c 加载权重慢 → 已拷至 ~/models/LocateAnything-3B（2.9s）

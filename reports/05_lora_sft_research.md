@@ -15,7 +15,7 @@
 2. LocateAnything-3B 官方**原生支持 LoRA 微调**（`shell/locate-anything-lora-visual-prompt.sh`），默认配置：LLM 加 LoRA(r=64)、Vision/LLM 冻结、MLP 投影器可训练。
 3. 本次已在 `locate_anything_sft` 环境**端到端跑通** LoRA 微调（2 步 smoke 测试）：
    - 训练可完成，~13 s/step（seq=2048），**峰值显存 ~16.1GB（已顶格 16GB）**；
-   - 产出 checkpoint 能被现有 `scripts/infer.py` 直接加载并正确推理（5 个框）；
+   - 产出 checkpoint 能被现有 `scripts/infer/infer.py` 直接加载并正确推理（5 个框）；
    - 因此**本机可行方案 = LoRA r=64 + sdpa + seq≤2048 + grad checkpoint + DeepSpeed ZeRO-1/2**。
 4. 全参 SFT（全部 3.52B 可训练）在 16GB 单卡**不可行**，需要多卡（官方用 8×H100 80GB）。
 5. 踩了 4 个坑（见 §9），其中 **DeepSpeed 0.15.4 在 Blackwell sm_120 上的 `compute_1.` 编译 bug** 是本机特有、必须处理的问题。
@@ -159,7 +159,7 @@ def wrap_llm_lora(self, r=128, lora_alpha=256, lora_dropout=0.05):
 2. **Stream（在线）Packing**：`per_device_train_batch_size=1`，用 `max_num_tokens`（token 预算）+ `packing_buffer_size` 把多个样本**拼进一个 batch**，避免 padding 浪费显存；
 3. **Fused CE Loss**：Liger 融合 Linear+CrossEntropy，不物化超大 logits 矩阵，省显存。
 
-另外注意：训练脚本 `trainer.save_model()` 保存的是**完整 checkpoint**（冻结权重 + LoRA 权重都在里面，约 7.3GB/份），config 里写入 `use_llm_lora=64` + `auto_map`，因此**微调产物可直接被 `scripts/infer.py` / `locateanything_worker.py` 加载推理，无需额外 merge 步骤**（本次已实测验证）。
+另外注意：训练脚本 `trainer.save_model()` 保存的是**完整 checkpoint**（冻结权重 + LoRA 权重都在里面，约 7.3GB/份），config 里写入 `use_llm_lora=64` + `auto_map`，因此**微调产物可直接被 `scripts/infer/infer.py` / `locateanything_worker.py` 加载推理，无需额外 merge 步骤**（本次已实测验证）。
 
 ---
 
@@ -222,7 +222,7 @@ LoRA 参数精确值：每层 3,325,952（q/k/v/o=262k/147k/147k/262k，gate/up/
 | 训练 | 2 steps 完成，loss 0.65→2.66（小数据过拟合，正常），**13.05 s/it** |
 | 峰值显存 | **Step1 16,136 MB / Step2 15,988 MB**（温度 41→50°C，功耗 ~107W） |
 | checkpoint | 全量 2 分片 ~7.3GB + DeepSpeed optimizer states + dataloader 状态 |
-| 训练后推理 | `scripts/infer.py --model <输出目录>` 4.5s 加载，输出 5 个合法框 ✓ |
+| 训练后推理 | `scripts/infer/infer.py --model <输出目录>` 4.5s 加载，输出 5 个合法框 ✓ |
 
 ### 6.3 对 16GB 单卡的结论
 
@@ -260,7 +260,7 @@ LAUNCHER=pytorch python -m torch.distributed.run --nnodes=1 --nproc_per_node=1 -
 
 参数速查：`r=64` 官方默认；数据 <1k 条建议 `r=16~32` 防过拟合；`lr` 官方 2e-5；`MAX_STEPS` 按数据量决定（先小跑验证再放大）。
 
-训练产物即 HF 格式完整模型目录，直接用现有 `scripts/infer.py --model <输出目录>` 推理验证。
+训练产物即 HF 格式完整模型目录，直接用现有 `scripts/infer/infer.py --model <输出目录>` 推理验证。
 
 ---
 
@@ -270,7 +270,7 @@ LAUNCHER=pytorch python -m torch.distributed.run --nnodes=1 --nproc_per_node=1 -
 2. **冒烟**：小数据 50~200 steps 跑通，确认 loss 下降、推理输出格式正确（本次已验证 pipeline 可用）；
 3. **正式训练**：后台长跑（参考 §7 命令），TensorBoard 监控；按需调 r/seq/lr；
 4. **评估**：训练前后用同一评测集跑 `Eagle/Embodied/evaluation/` 的脚本（COCO/LVIS/Grounding/SSPro），对比 F1 等指标量化提升；
-5. **上线**：微调产物 + 现有 `scripts/infer.py`/批量推理/（可选 FastAPI 服务封装）。
+5. **上线**：微调产物 + 现有 `scripts/infer/infer.py`/批量推理/（可选 FastAPI 服务封装）。
 
 ---
 

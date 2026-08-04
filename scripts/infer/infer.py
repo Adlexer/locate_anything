@@ -6,7 +6,7 @@ Output: JSON with boxes/points (normalized 0-1000 and pixel) + an annotated imag
 
 Run inside the WSL `locate_anything` conda env:
 
-    python /mnt/c/Dev/locate_anything/scripts/infer.py \
+    python /mnt/c/Dev/locate_anything/scripts/infer/infer.py \
         --image /path/to/img.jpg --task detect --query "person</c>car" \
         --out /mnt/c/Dev/locate_anything/outputs --generation-mode hybrid \
         --max-new-tokens 8192

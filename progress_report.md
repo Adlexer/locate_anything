@@ -36,6 +36,10 @@ Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 
 - [LoRA/SFT] 定位并绕过 DeepSpeed 0.15.4 Blackwell sm_120 JIT 编译 bug（compute_capability_args 把 '12.0' 解析成 '1.' → nvcc compute_1. 失败；方案：optimizer torch_adam:true）
 - [LoRA/SFT] 预研报告落盘：reports/05_lora_sft_research.md（原理普及 + 显存账 + 本机方案 + 踩坑清单）
 
+- [整理] scripts 目录重组为 scripts/{infer,bench,train,env,smoke}/，删除遗留 .b64 临时文件；verify_*.py 实为 bash 包装，改名 verify_*.sh；同步更新 04/05 报告中脚本路径
+- [整理] 新增 LoRA 训练启动/监控脚本：scripts/train/{train_lora.sh, train_watch.sh, ds_z1_torchadam.json, README.md} + scripts/README.md
+- [整理] train_lora.sh 端到端验证：1 步训练完成（loss 0.6534，checkpoint 落盘）、断点续训检测与 done.txt 提示、监控脚本 tail/checkpoints 模式可用
+
 ## In Progress
 
 - 无（巩固任务已收尾，等待用户后续指令）
@@ -60,6 +64,7 @@ Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 
 ---
 
 - [2026-08-04 19:30] 在当前的feat/codex/lora分支上，wsl机器conda新建locate_anything_sft clone from locate_anything，研究一下LoRA和SFT相关，因为我是infra这一块的，对训练不太了解，请预研同时给我输出报告，普及技术方案&原理。
+- [2026-08-04 20:05] 下一步任务：1.整理./scripts目录 2.落盘LoRA训练的启动监控脚本
 ## Timeline
 
 - [2026-08-04 15:14] /Report generate 初始化 progress_report.md 与 result_report.md
@@ -94,6 +99,10 @@ Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 
 - 本机 LoRA 方案：r=64 + sdpa + seq<=2048 + grad_checkpoint + DS ZeRO-1/2（optimizer 加 torch_adam:true）；全参 SFT 单卡不可行
 - DeepSpeed 0.15.4 + sm_120：JIT FusedAdam 编译必失败（compute_1.），勿依赖 TORCH_CUDA_ARCH_LIST；用 torch_adam 或打补丁
 - 数据注意：JSONL/recipe 需无 BOM UTF-8；annotation/root 相对路径按 cwd 解析，建议绝对路径；坐标用 <n> token（[0,1000]）
+- [2026-08-04 20:05] 用户发起 scripts 整理 + LoRA 训练启动监控脚本任务
+- [2026-08-04 20:10] scripts 重组为 infer/bench/train/env/smoke 子目录；删除 .b64 残留；verify_*.py 改名 .sh；更新 04/05 报告路径
+- [2026-08-04 20:15] 新增 scripts/train/train_lora.sh + train_watch.sh + ds_z1_torchadam.json + README（含 scripts/README.md）
+- [2026-08-04 20:18] train_lora.sh 端到端验证通过（1 步训练 + 断点续训检测 + done.txt 提示）；train_watch tail/checkpoints 模式可用
 ## Notes
 
 - 报告：reports/03_environment_fa_laflash.md（环境/FA/la_flash）、reports/04_generation_mode_benchmark.md（速度-精度对比）

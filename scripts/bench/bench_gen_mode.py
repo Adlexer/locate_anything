@@ -2,7 +2,7 @@
 """Speed-precision benchmark: generation_mode (fast/slow/hybrid) x max_new_tokens.
 
 Run inside the WSL `locate_anything` conda env:
-    python /mnt/c/Dev/locate_anything/scripts/bench_gen_mode.py
+    python /mnt/c/Dev/locate_anything/scripts/bench/bench_gen_mode.py
 
 Outputs:
   outputs/bench/gen_mode_results.json   (raw per-run records)

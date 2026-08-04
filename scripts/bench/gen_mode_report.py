@@ -188,8 +188,8 @@ def main():
     A("")
     A("```bash")
     A("conda activate locate_anything")
-    A("python /mnt/c/Dev/locate_anything/scripts/bench_gen_mode.py   # -> outputs/bench/gen_mode_results.json")
-    A("python /mnt/c/Dev/locate_anything/scripts/gen_mode_report.py  # -> reports/04_generation_mode_benchmark.md")
+    A("python /mnt/c/Dev/locate_anything/scripts/bench/bench_gen_mode.py   # -> outputs/bench/gen_mode_results.json")
+    A("python /mnt/c/Dev/locate_anything/scripts/bench/gen_mode_report.py  # -> reports/04_generation_mode_benchmark.md")
     A("```")
     A("")
 
