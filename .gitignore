@@ -25,6 +25,11 @@ desktop.ini
 # ---- NVlabs/Eagle snapshot: binary assets are git-lfs placeholders (no real content) ----
 Eagle/**/*.pdf
 Eagle/**/assets/
+Eagle/**/*.jpg
+Eagle/**/*.jpeg
+Eagle/**/*.png
+Eagle/**/*.gif
+Eagle/**/*.webp
 Eagle/**/*.mp4
 Eagle/**/*.ttf
 Eagle/**/*.pt
