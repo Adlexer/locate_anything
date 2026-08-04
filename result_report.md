@@ -23,6 +23,7 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - [2026-08-04] LoRA/SFT 预研收尾：conda locate_anything_sft（clone 自 locate_anything）就绪；官方 LoRA 微调管线在 5060 Ti 16GB 端到端验证通过（LoRA r=64 + sdpa + seq=2048 + grad ckpt，13.05s/it，峰值显存 16,136MB，trainable 119,734,272），微调 checkpoint 可被 scripts/infer.py 直接加载并正确推理（5 框）；定位 DeepSpeed 0.15.4 Blackwell sm_120 JIT 编译 bug（compute_1.）并给出 torch_adam 绕行方案；报告 reports/05_lora_sft_research.md 落盘
 - [2026-08-04] scripts 目录整理 + LoRA 训练启动/监控脚本交付：scripts/ 重组为 infer/bench/train/env/smoke 子目录（删除 .b64 残留、verify_*.py→.sh），新增 scripts/train/{train_lora.sh,train_watch.sh,ds_z1_torchadam.json,README.md} 与 scripts/README.md；train_lora.sh 端到端验证（1 步训练成功、断点续训检测、done.txt 提示），train_watch.sh 提供 tail/loss/gpu/tensorboard/checkpoints 监控
 - [2026-08-05] 真实小数据集验证里程碑：零样本标注管线（scripts/annotation/ 三脚本 + README）交付，C:\Data\datasets\detect 产出 122 份 YOLO txt（93 框，0 错误）；LoRA 小批量训练验证通过（78 伪标签样本，150 步 loss 1.19→0.41，holdout 8/8 类别一致 IoU 0.987，无灾难性遗忘）；定位 16GB 显存约束导致的 3 个问题（高帧样本丢弃 / model_max_length 烤死 / fast-hybrid 大图回归）并改进 launcher（MAX_SEQ 默认 1536、三重警告、model_max_length 自动恢复、--warmup）；报告 reports/06_zeroshot_annotation_and_lora_validation.md 落盘
+- [2026-08-05] 标准化检测评估交付：scripts/eval/eval_det.py（模型 vs YOLO GT，P/R/F1@IoU + F1@Mean + matched-IoU + 逐图明细，JSON+MD 报告），holdout 双模型评估跑通（F1@Mean=1.000 自洽口径，微调无回归）
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线
@@ -53,6 +54,7 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - 训练产物：WSL ~/lora_gas/run_v1（LoRA 微调，checkpoint-50/100/150 + 最终模型）
 - 报告：reports/06_zeroshot_annotation_and_lora_validation.md
 - 评测数据：outputs/annotation_detect/{summary.json, manifest.jsonl, eval_before/after*.json, previews/, probe/}
+- 评估：scripts/eval/{eval_det.py, README.md}；产出 outputs/annotation_detect/eval_det_{pretrained,finetuned}.{json,md}
 ## Remaining Issues
 
 - [已解决] /mnt/c 加载权重慢 → 已拷至 ~/models/LocateAnything-3B（2.9s）

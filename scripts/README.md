@@ -8,6 +8,7 @@
 |---|---|---|
 | `scripts/infer/` | 推理 | `infer.py`（主力 CLI，7 类任务 → boxes/points JSON + 标注图）、`render_annotated.py`（标注图渲染） |
 | `scripts/bench/` | 基准测试 | `bench_gen_mode.py`（generation_mode×max_new_tokens）、`bench_la_flash.py`（la_flash）、`gen_mode_report.py`（生成报告 04）、`make_bench_assets.py`（基准素材） |
+| `scripts/eval/` | 标准化检测评估 | `eval_det.py`（模型 vs YOLO GT：P/R/F1@IoU、F1@Mean、逐类/逐图明细，JSON+MD）、`README.md` |
 | `scripts/train/` | LoRA/SFT 训练 | `train_lora.sh`（训练启动）、`train_watch.sh`（训练监控）、`ds_z1_torchadam.json`（DeepSpeed ZeRO-1 + torch AdamW，绕 sm_120 JIT bug）、`README.md` |
 | `scripts/env/` | 环境/FlashAttention | `build_fa.sh`、`install_fa_wheel.sh`、`check_fa_wheels.sh`、`list_hf_wheels.sh`、`verify_fa.sh`、`verify_fa_model.sh`、`verify_sdpa_llm.sh` |
 | `scripts/smoke/` | 早期冒烟测试（历史保留） | `smoke_test.py`、`smoke_test_real.py` |

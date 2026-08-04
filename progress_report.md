@@ -47,6 +47,7 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - [教训] 显存事故复盘：seq=2048 训练 ~15GB 时并发推理差点搞崩宿主；launcher 默认 MAX_SEQ 2048→1536、seq>=2048 三重警告、训练后自动恢复 model_max_length、新增 --warmup；train/README 记录 4 条经验
 - [报告] reports/06_zeroshot_annotation_and_lora_validation.md 落盘（结论/数据/能力表/训练对比/显存复盘/下一步）
 
+- [eval] 标准化检测评估脚本落盘 scripts/eval/{eval_det.py, README.md}：模型 vs YOLO GT，逐类 P/R/F1@IoU(0.5/0.75/0.9) + F1@Mean + matched-IoU + 逐图明细，JSON+MD；预训练与微调模型在 8 张 holdout 上均为 macro F1@Mean=1.000（自洽口径），gas mIoU 0.992 vs 0.985
 ## In Progress
 
 - 无（巩固任务已收尾，等待用户后续指令）
@@ -121,6 +122,7 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - 标注产物：C:\Data\datasets\detect 下 *.txt + classes.txt + _frames/；aux 在 outputs/annotation_detect/
 - 训练/评测复现：reports/06 第 5 节
 - 伪标签类别建议：业务只关心两轮车时用 --merge-two-wheeler；高分辨率帧需降采样入训
+- [2026-08-05 02:2x] 用户提出缺标准化 eval 脚本；新增 scripts/eval/eval_det.py + README；holdout 上预训练/微调双模型标准评估通过（F1@Mean=1.000 自洽口径）
 ## Notes
 
 - 报告：reports/03_environment_fa_laflash.md（环境/FA/la_flash）、reports/04_generation_mode_benchmark.md（速度-精度对比）
