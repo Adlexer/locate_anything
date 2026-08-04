@@ -25,7 +25,8 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 - [巩固] 环境导出：environment.yml（348 行，含 flash-attn/cuda-toolkit 13.0.3 等 157 个 pip 包）
 - [巩固] generation_mode×max_new_tokens 对比：reports/04_generation_mode_benchmark.md（fast/hybrid/slow × 512/2048/8192，速度-精度+跨模式一致性）
 - [巩固] 可复用 CLI：scripts/infer.py（detect/ground/ground_multi/ground_text/detect_text/ground_gui/point，输出 boxes/points 像素坐标 JSON + 标注图）
-- [git] 项目纳入 git 管理：git init（main），540 文件初始提交 74e3766；根 .gitignore（outputs/、缓存、Eagle LFS 占位）、.gitattributes（LF 归一化 + 二进制标记）
+- [git] 项目纳入 git 管理：git init（main）；根 .gitignore（outputs/、缓存、Eagle LFS 占位）、.gitattributes（LF 归一化 + 二进制标记）
+- [git] 推送 GitHub 远端：origin=https://github.com/Adlexer/locate_anything；filter-branch 清理历史中的 git-lfs 占位 prod_1.jpeg 后 force push 成功（main=200b6c4，541 文件）
 
 ---
 
@@ -73,6 +74,7 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 - [2026-08-04 18:50] generation_mode×max_new_tokens 基准完成（45 组），报告 04 落盘
 - [2026-08-04 18:53] infer.py CLI 全任务类型验证通过（detect/ground_multi/point/detect_text），标注图+JSON 落盘
 - [2026-08-04 19:02] 用户要求整个项目工作目录纳入 git 管理；git init + 初始提交 74e3766（540 文件）
+- [2026-08-04 19:10] 用户创建 GitHub 远端 Adlexer/locate_anything；合并远端初始提交（LICENSE+README），filter-branch 移除历史 LFS 占位后 force push 成功
 
 ---
 
