@@ -33,7 +33,7 @@ python scripts/infer/infer.py --model /home/xu/work_dirs/locany_lora_v1     --im
 | `--rank` / `RANK` | 64 | LLM LoRA rank（0=关闭） |
 | `--backbone-rank` / `BACKBONE_RANK` | 0 | Vision LoRA rank |
 | `--freeze-mlp` / `FREEZE_MLP` | False | 是否冻结 MLP 连接器 |
-| `--seq` / `MAX_SEQ` | 2048 | max_seq_length（16GB 单卡上限，实测顶格） |
+| `--seq` / `MAX_SEQ` | 1536 | max_seq_length（默认 1536 留显存余量；2048 为实测 16GB 顶格，无余量） |
 | `--steps` / `MAX_STEPS` | 5000 | 总训练步数 |
 | `--lr` / `LR` | 2e-5 | 学习率 |
 | `--save-steps` / `SAVE_STEPS` | 200 | checkpoint 间隔 |
@@ -47,6 +47,13 @@ python scripts/infer/infer.py --model /home/xu/work_dirs/locany_lora_v1     --im
 输出目录存在 `checkpoint-*` 时 `train_lora.sh` 自动续训（streaming 数据顺序 bit-wise 恢复）。若目录非空但无 checkpoint，脚本会拒绝启动（防误覆盖），用 `--overwrite` 强制重建。
 
 > 注意：训练脚本在输出目录写入 `done.txt` 标记完成；若存在 `done.txt`，再次启动会直接退出。需要继续训练时先 `rm <out>/done.txt`（launcher 会给出提示）。
+
+## 2026-08-05 经验教训（务必遵守）
+
+1. **显存余量**：seq=2048 训练峰值 ~15-16GB，已顶格 16GB，会挤压 Windows 宿主显存（并发任何 GPU 进程可能把宿主搞崩）。默认已调低到 `MAX_SEQ=1536`；若必须 2048，训练期间**禁止并发其他 GPU 任务**。
+2. **样本丢弃**：单样本视觉 token 超过 `MAX_SEQ` 的图片会被训练管线静默丢弃（日志出现 `idx N failed: image token mismatch`）。1080p 帧需要 ~2500-4600 token，seq=2048 时基本进不了训练。要对高分辨率图做 LoRA，先降采样（如 ≤1280px）再训练，或提高 seq（需更大显存）。
+3. **推理回归自动修复**：训练会把 `tokenizer.model_max_length` 烤成训练 seq（如 2048），导致微调产物在 1080p 大图上推理截断。`train_lora.sh` 训练成功后会自动把 `model_max_length` 恢复为基座模型的值。
+4. **fast/hybrid 解码回归**：在 seq=2048 且没见到高分辨率两轮车数据的情况下，微调模型的 MTP 路径（fast/hybrid）在 1080p 大图上可能截断/乱码；`slow`（纯 AR）模式输出正常。涉及大图部署时优先 slow 或把大图纳入训练。
 
 ## 常见问题
 

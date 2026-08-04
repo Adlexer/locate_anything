@@ -29,7 +29,7 @@ FREEZE_MLP="${FREEZE_MLP:-False}"    # True = freeze MLP connector
 MAX_STEPS="${MAX_STEPS:-5000}"
 LR="${LR:-2e-5}"
 WARMUP="${WARMUP:-200}"
-MAX_SEQ="${MAX_SEQ:-2048}"           # 16GB single-GPU ceiling ~2048 (measured)
+MAX_SEQ="${MAX_SEQ:-1536}"           # default 1536 for memory headroom; 2048 = measured ceiling (no margin)
 SAVE_STEPS="${SAVE_STEPS:-200}"
 SAVE_TOTAL_LIMIT="${SAVE_TOTAL_LIMIT:-3}"
 GRAD_ACC="${GRAD_ACC:-1}"
@@ -76,6 +76,7 @@ while [[ $# -gt 0 ]]; do
         --meta)          META_PATH="${2:?--meta needs a value}"; shift 2 ;;
         --output)        OUTPUT_DIR="${2:?--output needs a value}"; shift 2 ;;
         --steps)         MAX_STEPS="$2"; shift 2 ;;
+        --warmup)        WARMUP="$2"; shift 2 ;;
         --lr)            LR="$2"; shift 2 ;;
         --rank)          RANK="$2"; shift 2 ;;
         --backbone-rank) BACKBONE_RANK="$2"; shift 2 ;;
@@ -97,6 +98,12 @@ done
 [[ -n "$OUTPUT_DIR" ]] || { echo "[train] missing --output"; usage; exit 1; }
 
 # ---------------- preflight ----------------
+if [[ "$MAX_SEQ" -ge 2048 ]]; then
+    echo "[train] WARNING: MAX_SEQ=$MAX_SEQ is the measured 16GB ceiling (~15-16GB peak)."
+    echo "[train]          Do NOT run any other GPU workload concurrently; the host desktop also needs VRAM."
+    echo "[train]          Also: images whose visual tokens exceed MAX_SEQ are DROPPED from training (see log 'idx N failed')."
+fi
+
 [[ -d "$MODEL_PATH" ]] || { echo "[train] model dir not found: $MODEL_PATH"; exit 1; }
 [[ -f "$META_PATH" ]]  || { echo "[train] recipe not found: $META_PATH"; exit 1; }
 [[ -f "$DS_CONFIG" ]]  || { echo "[train] deepspeed config missing: $DS_CONFIG"; exit 1; }
@@ -193,4 +200,34 @@ echo "[train] log   : $OUTPUT_DIR/training_log.txt"
 echo "[train] watch : bash scripts/train/train_watch.sh $OUTPUT_DIR --follow"
 
 cd "$EMBODIED"
-exec env "${CMD[@]}" 2>&1 | tee -a "$OUTPUT_DIR/training_log.txt"
+set +e
+env "${CMD[@]}" 2>&1 | tee -a "$OUTPUT_DIR/training_log.txt"
+train_rc=${PIPESTATUS[0]}
+set -e
+if [[ $train_rc -ne 0 ]]; then
+    echo "[train] training FAILED (rc=$train_rc); see $OUTPUT_DIR/training_log.txt"
+    exit $train_rc
+fi
+
+# ---- post-training: restore tokenizer model_max_length for inference ----
+# The training script bakes tokenizer.model_max_length = max_seq (e.g. 2048), which caps
+# inference on large images (1080p needs ~2700+ tokens). Restore the base model's value.
+if [[ -f "$OUTPUT_DIR/tokenizer_config.json" && -f "$MODEL_PATH/tokenizer_config.json" ]]; then
+    OUTPUT_DIR="$OUTPUT_DIR" MODEL_PATH="$MODEL_PATH" "$ENV_PY" - <<'PY'
+import json, os
+out = os.path.join(os.environ["OUTPUT_DIR"], "tokenizer_config.json")
+base = os.path.join(os.environ["MODEL_PATH"], "tokenizer_config.json")
+target = None
+try:
+    target = json.load(open(base, encoding="utf-8")).get("model_max_length")
+except Exception:
+    pass
+if target:
+    d = json.load(open(out, encoding="utf-8"))
+    if d.get("model_max_length") != target:
+        d["model_max_length"] = target
+        json.dump(d, open(out, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+        print(f"[train] restored tokenizer model_max_length -> {target} (was baked to {MAX_SEQ} by training)")
+PY
+fi
+echo "[train] training done. Checkpoints: $OUTPUT_DIR  | watch: bash scripts/train/train_watch.sh $OUTPUT_DIR"

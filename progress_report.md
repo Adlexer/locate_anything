@@ -2,13 +2,13 @@
 
 ## Task
 
-LocateAnything LoRA / SFT 预研阶段：在 feat/codex/lora 分支上为不熟悉训练的基础设施工程师普及 SFT/LoRA 原理与技术方案；WSL conda 新建 locate_anything_sft（clone 自 locate_anything），端到端验证官方 LoRA 微调管线在本机（5060 Ti 16GB）可行性，并输出预研报告。
+LocateAnything 真实小数据集验证：1) 预训练模型零样本标注能力（煤气罐/电动车/自行车，输出 YOLO txt 落数据集同目录，smoke 代码落 scripts/annotation/）；2) 小批量伪标签 LoRA 训练验证。本阶段已完成并落盘报告 06，附显存事故复盘与 launcher 改进。
 
 ---
 
 ## Current Status
 
-Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 + 预研报告落盘；等待用户提供真实业务数据进入正式训练）
+Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落盘；遗留 2 个待决事项见 Next Step）
 
 ---
 
@@ -40,6 +40,13 @@ Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 
 - [整理] 新增 LoRA 训练启动/监控脚本：scripts/train/{train_lora.sh, train_watch.sh, ds_z1_torchadam.json, README.md} + scripts/README.md
 - [整理] train_lora.sh 端到端验证：1 步训练完成（loss 0.6534，checkpoint 落盘）、断点续训检测与 done.txt 提示、监控脚本 tail/checkpoints 模式可用
 
+- [标注] 零样本标注管线落盘 scripts/annotation/{annotate_yolo.py, build_train_jsonl.py, eval_before_after.py, README.md}；全量标注 49 图 + 9 视频（72 帧），0 错误，93 框（煤气罐 58/电动车 28/自行车 7），122 份 YOLO txt + classes.txt 落 C:\Data\datasets\detect
+- [标注] 能力结论：煤气罐识别稳定；电动车/自行车子类判定有噪声（二选一互斥）；probe 输出留档 outputs/annotation_detect/probe/
+- [训练] 78 条伪标签（train）+ 8 holdout，LoRA r=64 + seq=2048，150 步/9min，loss 1.19→0.41；微调产物 ~/lora_gas/run_v1（checkpoint-50/100/150）
+- [训练] before/after（slow 模式）8/8 类别一致、平均 IoU 0.987——无灾难性遗忘；发现 fast/hybrid 在 1080p 大图上截断回归、tokenizer.model_max_length 被烤成 2048
+- [教训] 显存事故复盘：seq=2048 训练 ~15GB 时并发推理差点搞崩宿主；launcher 默认 MAX_SEQ 2048→1536、seq>=2048 三重警告、训练后自动恢复 model_max_length、新增 --warmup；train/README 记录 4 条经验
+- [报告] reports/06_zeroshot_annotation_and_lora_validation.md 落盘（结论/数据/能力表/训练对比/显存复盘/下一步）
+
 ## In Progress
 
 - 无（巩固任务已收尾，等待用户后续指令）
@@ -65,6 +72,8 @@ Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 
 
 - [2026-08-04 19:30] 在当前的feat/codex/lora分支上，wsl机器conda新建locate_anything_sft clone from locate_anything，研究一下LoRA和SFT相关，因为我是infra这一块的，对训练不太了解，请预研同时给我输出报告，普及技术方案&原理。
 - [2026-08-04 20:05] 下一步任务：1.整理./scripts目录 2.落盘LoRA训练的启动监控脚本
+- [2026-08-05 01:40] 巧了，我这正好有些数据集给你：C:\Data\datasets\detect，分别是煤气罐和电动车（包含少量自行车）图片和视频的小数据集，没有任何标注，现在我想验证：1.你的预训练模型的识别标注能力（对不常见物体），输出为YOLO格式的标注txt，放到数据集同目录下，smoke代码落盘：./scripts/annotation/ 2.小批量数据的LoRA训练验证。
+- [2026-08-05 02:05] 这个训练配置的内存占用太极限了，差点把宿主windows都炸掉，先等待这次训练完成吧，下次记得吸取教训。
 ## Timeline
 
 - [2026-08-04 15:14] /Report generate 初始化 progress_report.md 与 result_report.md
@@ -103,6 +112,15 @@ Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 
 - [2026-08-04 20:10] scripts 重组为 infer/bench/train/env/smoke 子目录；删除 .b64 残留；verify_*.py 改名 .sh；更新 04/05 报告路径
 - [2026-08-04 20:15] 新增 scripts/train/train_lora.sh + train_watch.sh + ds_z1_torchadam.json + README（含 scripts/README.md）
 - [2026-08-04 20:18] train_lora.sh 端到端验证通过（1 步训练 + 断点续训检测 + done.txt 提示）；train_watch tail/checkpoints 模式可用
+- [2026-08-05 01:40] 用户提供 C:\Data\datasets\detect 小数据集，发起零样本标注 + LoRA 训练验证
+- [2026-08-05 01:5x] 数据盘点 + 词汇 probe（gas 稳 / 两轮车子类模糊）；annotate_yolo.py 全量标注完成（93 框，122 txt）
+- [2026-08-05 02:00] build_train_jsonl 产出 78+8 样本；2 步 smoke 通过；150 步正式训练启动（seq=2048）
+- [2026-08-05 02:05] 用户反馈显存极限险情（训练+并发推理差点搞崩宿主），要求等训练完成并吸取教训
+- [2026-08-05 02:11] 训练完成：loss 1.19→0.41；before/after 评测（slow 8/8 一致 IoU 0.987）；发现 fast/hybrid 大图回归 + model_max_length 烤成 2048
+- [2026-08-05 02:1x] launcher 改进（MAX_SEQ 默认 1536 + 警告 + model_max_length 自动恢复 + --warmup）并 1 步回归验证通过；报告 06 落盘
+- 标注产物：C:\Data\datasets\detect 下 *.txt + classes.txt + _frames/；aux 在 outputs/annotation_detect/
+- 训练/评测复现：reports/06 第 5 节
+- 伪标签类别建议：业务只关心两轮车时用 --merge-two-wheeler；高分辨率帧需降采样入训
 ## Notes
 
 - 报告：reports/03_environment_fa_laflash.md（环境/FA/la_flash）、reports/04_generation_mode_benchmark.md（速度-精度对比）
