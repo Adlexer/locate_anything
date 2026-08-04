@@ -1,0 +1,20 @@
+# Normalize text to LF in the repo; keep shell/python LF in working tree (WSL-friendly)
+* text=auto
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.b64 text eol=lf
+*.txt text eol=lf
+
+# Real binary assets (project data/)
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.webp binary
+*.pdf binary
+*.mp4 binary
+*.ttf binary

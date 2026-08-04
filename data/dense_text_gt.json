@@ -1,0 +1,273 @@
+{
+  "image": "/mnt/c/Dev/locate_anything/data/dense_text.png",
+  "width": 1280,
+  "height": 1700,
+  "boxes": [
+    {
+      "text": "Home",
+      "x1": 32,
+      "y1": 28,
+      "x2": 142,
+      "y2": 75
+    },
+    {
+      "text": "Products",
+      "x1": 170,
+      "y1": 28,
+      "x2": 324,
+      "y2": 75
+    },
+    {
+      "text": "Solutions",
+      "x1": 352,
+      "y1": 28,
+      "x2": 511,
+      "y2": 75
+    },
+    {
+      "text": "Pricing",
+      "x1": 539,
+      "y1": 28,
+      "x2": 661,
+      "y2": 82
+    },
+    {
+      "text": "Docs",
+      "x1": 689,
+      "y1": 28,
+      "x2": 783,
+      "y2": 75
+    },
+    {
+      "text": "Support",
+      "x1": 811,
+      "y1": 28,
+      "x2": 952,
+      "y2": 82
+    },
+    {
+      "text": "Build once, locate anything.",
+      "x1": 52,
+      "y1": 144,
+      "x2": 721,
+      "y2": 220
+    },
+    {
+      "text": "A universal visual grounding model for detection, OCR and GUI.",
+      "x1": 52,
+      "y1": 216,
+      "x2": 757,
+      "y2": 259
+    },
+    {
+      "text": "Dashboard",
+      "x1": 48,
+      "y1": 344,
+      "x2": 312,
+      "y2": 380
+    },
+    {
+      "text": "Analytics",
+      "x1": 48,
+      "y1": 410,
+      "x2": 312,
+      "y2": 451
+    },
+    {
+      "text": "Reports",
+      "x1": 48,
+      "y1": 476,
+      "x2": 312,
+      "y2": 517
+    },
+    {
+      "text": "Settings",
+      "x1": 48,
+      "y1": 542,
+      "x2": 312,
+      "y2": 583
+    },
+    {
+      "text": "Billing",
+      "x1": 48,
+      "y1": 608,
+      "x2": 312,
+      "y2": 649
+    },
+    {
+      "text": "API Keys",
+      "x1": 48,
+      "y1": 674,
+      "x2": 312,
+      "y2": 715
+    },
+    {
+      "text": "Team",
+      "x1": 48,
+      "y1": 740,
+      "x2": 312,
+      "y2": 776
+    },
+    {
+      "text": "Activity",
+      "x1": 48,
+      "y1": 806,
+      "x2": 312,
+      "y2": 847
+    },
+    {
+      "text": "Storage",
+      "x1": 48,
+      "y1": 872,
+      "x2": 312,
+      "y2": 913
+    },
+    {
+      "text": "Revenue overview",
+      "x1": 392,
+      "y1": 342,
+      "x2": 1208,
+      "y2": 393
+    },
+    {
+      "text": "Monthly recurring revenue grew 18%.",
+      "x1": 392,
+      "y1": 403,
+      "x2": 1208,
+      "y2": 440
+    },
+    {
+      "text": "Annual plan conversion rate: 24.5%.",
+      "x1": 392,
+      "y1": 461,
+      "x2": 1208,
+      "y2": 498
+    },
+    {
+      "text": "Net revenue retention reached 131%.",
+      "x1": 392,
+      "y1": 519,
+      "x2": 1208,
+      "y2": 551
+    },
+    {
+      "text": "Churn dropped to 2.1% this quarter.",
+      "x1": 392,
+      "y1": 577,
+      "x2": 1208,
+      "y2": 614
+    },
+    {
+      "text": "Deployment status",
+      "x1": 392,
+      "y1": 662,
+      "x2": 1208,
+      "y2": 720
+    },
+    {
+      "text": "All 42 regions are healthy.",
+      "x1": 392,
+      "y1": 730,
+      "x2": 1208,
+      "y2": 767
+    },
+    {
+      "text": "Latest model v3.2 deployed at 06:00 UTC.",
+      "x1": 392,
+      "y1": 788,
+      "x2": 1208,
+      "y2": 825
+    },
+    {
+      "text": "Average inference latency: 31 ms.",
+      "x1": 392,
+      "y1": 846,
+      "x2": 1208,
+      "y2": 883
+    },
+    {
+      "text": "Zero failed requests in the last hour.",
+      "x1": 392,
+      "y1": 904,
+      "x2": 1208,
+      "y2": 941
+    },
+    {
+      "text": "Customer highlights",
+      "x1": 392,
+      "y1": 982,
+      "x2": 1208,
+      "y2": 1040
+    },
+    {
+      "text": "Acme Corp signed a 3-year enterprise deal.",
+      "x1": 392,
+      "y1": 1050,
+      "x2": 1208,
+      "y2": 1087
+    },
+    {
+      "text": "Globex migrated 12M records.",
+      "x1": 392,
+      "y1": 1108,
+      "x2": 1208,
+      "y2": 1145
+    },
+    {
+      "text": "Initech doubled their API quota.",
+      "x1": 392,
+      "y1": 1166,
+      "x2": 1208,
+      "y2": 1203
+    },
+    {
+      "text": "Umbrella adopted the on-prem plan.",
+      "x1": 392,
+      "y1": 1224,
+      "x2": 1208,
+      "y2": 1261
+    },
+    {
+      "text": "Recent activity",
+      "x1": 392,
+      "y1": 1302,
+      "x2": 1208,
+      "y2": 1360
+    },
+    {
+      "text": "User alice created workspace 'vision-lab'.",
+      "x1": 392,
+      "y1": 1370,
+      "x2": 1208,
+      "y2": 1407
+    },
+    {
+      "text": "API key rotated by admin.",
+      "x1": 392,
+      "y1": 1428,
+      "x2": 1208,
+      "y2": 1465
+    },
+    {
+      "text": "New dataset 'streetview-2026' indexed.",
+      "x1": 392,
+      "y1": 1486,
+      "x2": 1208,
+      "y2": 1518
+    },
+    {
+      "text": "Alert threshold updated for p99 latency.",
+      "x1": 392,
+      "y1": 1544,
+      "x2": 1208,
+      "y2": 1581
+    },
+    {
+      "text": "Copyright 2026 LocateAnything Inc. | Privacy Policy | Terms of Service",
+      "x1": 32,
+      "y1": 1636,
+      "x2": 669,
+      "y2": 1674
+    }
+  ]
+}

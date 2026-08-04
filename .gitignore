@@ -1,0 +1,31 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ---- Generated outputs (regenerable via scripts/) ----
+outputs/
+
+# ---- Logs / temp ----
+*.log
+*.log.*
+.tmp/
+*.tmp
+
+# ---- Editor / OS ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- NVlabs/Eagle snapshot: binary assets are git-lfs placeholders (no real content) ----
+Eagle/**/*.pdf
+Eagle/**/assets/
+Eagle/**/*.mp4
+Eagle/**/*.ttf
+Eagle/**/*.pt
+Eagle/**/*.bin
