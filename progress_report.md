@@ -1,4 +1,4 @@
-﻿# Progress Report
+# Progress Report
 
 ## Task
 
@@ -25,6 +25,7 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 - [巩固] 环境导出：environment.yml（348 行，含 flash-attn/cuda-toolkit 13.0.3 等 157 个 pip 包）
 - [巩固] generation_mode×max_new_tokens 对比：reports/04_generation_mode_benchmark.md（fast/hybrid/slow × 512/2048/8192，速度-精度+跨模式一致性）
 - [巩固] 可复用 CLI：scripts/infer.py（detect/ground/ground_multi/ground_text/detect_text/ground_gui/point，输出 boxes/points 像素坐标 JSON + 标注图）
+- [git] 项目纳入 git 管理：git init（main），540 文件初始提交 74e3766；根 .gitignore（outputs/、缓存、Eagle LFS 占位）、.gitattributes（LF 归一化 + 二进制标记）
 
 ---
 
@@ -47,6 +48,7 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 - [2026-08-04 15:40] 做完上述工作之后，接下来任务编排：1.落盘初步探查报告 2.建立依赖环境，做一次真实图片推理冒烟测试 3.代办和建议项目落盘报告，等待继续 至此本预研任务结束
 - [2026-08-04 18:01] 参考./reports/02_todo_and_suggestions.md，待办项目进一步巩固：1.权重拷贝+使能fa+la_flash验证+最终conda环境导出 2.对 generation_mode（fast/slow/hybrid）与 max_new_tokens（官方建议 8192）做速度-精度对比，精度时延报告落盘 3.基于上述工作，整理最终可复用的 infer.py CLI（输入图+query，输出 boxes/points + 标注图）
 - [2026-08-04 18:2x] 用户更新 C:\Users\Adlexer Xu\.wslconfig：WSL 内存 48GB（给 Windows 留 16GB），以缓解 WSL 编译 OOM
+- [2026-08-04 19:02] 用户要求整个项目工作目录纳入 git 管理
 
 ---
 
@@ -70,6 +72,7 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 - [2026-08-04 18:45] environment.yml 导出完成（含 flash-attn 2.8.3）
 - [2026-08-04 18:50] generation_mode×max_new_tokens 基准完成（45 组），报告 04 落盘
 - [2026-08-04 18:53] infer.py CLI 全任务类型验证通过（detect/ground_multi/point/detect_text），标注图+JSON 落盘
+- [2026-08-04 19:02] 用户要求整个项目工作目录纳入 git 管理；git init + 初始提交 74e3766（540 文件）
 
 ---
 

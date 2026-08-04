@@ -1,4 +1,4 @@
-﻿# Result Report
+# Result Report
 
 ## Status
 
@@ -15,6 +15,7 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - [2026-08-04] 推理基线升级（巩固阶段）：权重本地化到 WSL ext4（加载 31-42s→2.9s）；使能 FlashAttention（Vision=flash_attention_2，LLM=sdpa），detect 提速至 1.45s / 4.1 BPS（约 2×）；la_flash 批处理验证通过（batch4 与 sdpa 速度相当并省 ~2.1GB 显存）；environment.yml 复现基线导出
 - [2026-08-04] 生成模式对比落盘：reports/04_generation_mode_benchmark.md（fast/hybrid/slow × max_new_tokens 512/2048/8192，速度-精度 + 跨模式一致性；推荐 hybrid + 8192）
 - [2026-08-04] 可复用推理 CLI 交付：scripts/infer.py（detect/ground/ground_multi/ground_text/detect_text/ground_gui/point → 像素坐标 boxes/points JSON + 标注图）
+- [2026-08-04] 项目纳入 git 管理：git init（main 分支）+ 初始提交 74e3766（540 文件）；根 .gitignore（outputs/、缓存、Eagle LFS 占位二进制）+ .gitattributes（LF 归一化、二进制标记），工作区干净
 
 ---
 
@@ -31,7 +32,8 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - 基准脚本：scripts/bench_gen_mode.py、scripts/gen_mode_report.py、scripts/bench_la_flash.py、scripts/make_bench_assets.py
 - 环境基线：environment.yml（含 flash-attn 2.8.3+cu.13.0.torch.2.9、cuda-toolkit 13.0.3 等）
 - 推理产物：outputs/demo_detect_annotated.jpg、demo_ground_annotated.jpg、demo_point_annotated.jpg、demo_*.json、bench/gen_mode_results.json、bench/la_flash_results.json
-- 权重：~/models/LocateAnything-3B（WSL ext4 本地副本）；数据：data/bus.jpg、data/dense_text.png（+dense_text_gt.json 38 框 GT）
+- 权重：~/models/LocateAnything-3B（WSL ext4 本地副本，在仓库外不入库）；数据：data/bus.jpg、data/dense_text.png（+dense_text_gt.json 38 框 GT）
+- git 仓库：C:\\Dev\\locate_anything（main 分支，初始提交 74e3766；outputs/ 与 Eagle LFS 占位不入库）
 - WSL 环境：/home/xu/miniconda3 + locate_anything 环境（conda activate locate_anything）；~/.wslconfig memory=48GB
 
 ---
