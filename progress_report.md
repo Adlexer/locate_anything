@@ -2,13 +2,13 @@
 
 ## Task
 
-LocateAnything 预研 → 环境巩固阶段：权重本地化 + 使能 FA + la_flash 验证 + conda 环境导出；generation_mode×max_new_tokens 速度-精度对比报告落盘；整理可复用 infer.py CLI。本阶段已收尾，等待后续指令。
+LocateAnything LoRA / SFT 预研阶段：在 feat/codex/lora 分支上为不熟悉训练的基础设施工程师普及 SFT/LoRA 原理与技术方案；WSL conda 新建 locate_anything_sft（clone 自 locate_anything），端到端验证官方 LoRA 微调管线在本机（5060 Ti 16GB）可行性，并输出预研报告。
 
 ---
 
 ## Current Status
 
-Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI 已交付）
+Completed（LoRA/SFT 预研阶段收尾：环境 clone + 端到端 smoke 验证 + 预研报告落盘；等待用户提供真实业务数据进入正式训练）
 
 ---
 
@@ -29,6 +29,12 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 - [git] 推送 GitHub 远端：origin=https://github.com/Adlexer/locate_anything；filter-branch 清理历史中的 git-lfs 占位 prod_1.jpeg 后 force push 成功（main=200b6c4，541 文件）
 
 ---
+
+- [LoRA/SFT] WSL conda 新建 locate_anything_sft（conda create --clone locate_anything，185 包 / python 3.10.20 / torch 2.9.0+cu130 / peft 0.12.0 / deepspeed 0.15.4 等），补装 nvidia-ml-py / sortedcontainers / tensorboard
+- [LoRA/SFT] 源码研究：官方 LoRA 脚本 locate-anything-lora-visual-prompt.sh、locany_finetune_magi_stream.py、wrap_llm_lora/wrap_backbone_lora（modeling_locateanything.py）、MTP+stream packing+fused CE、TRAINING.md / DATA_PREPARATION.md
+- [LoRA/SFT] 端到端 smoke 验证（5060 Ti 16GB）：LoRA r=64 + sdpa + seq=2048 + grad checkpoint + DS ZeRO-1(torch_adam)，2 steps 完成，~13s/it，峰值显存 16,136MB（顶格），checkpoint 全量 2 分片可被 scripts/infer.py 直接加载并正确推理（5 框）
+- [LoRA/SFT] 定位并绕过 DeepSpeed 0.15.4 Blackwell sm_120 JIT 编译 bug（compute_capability_args 把 '12.0' 解析成 '1.' → nvcc compute_1. 失败；方案：optimizer torch_adam:true）
+- [LoRA/SFT] 预研报告落盘：reports/05_lora_sft_research.md（原理普及 + 显存账 + 本机方案 + 踩坑清单）
 
 ## In Progress
 
@@ -53,6 +59,7 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 
 ---
 
+- [2026-08-04 19:30] 在当前的feat/codex/lora分支上，wsl机器conda新建locate_anything_sft clone from locate_anything，研究一下LoRA和SFT相关，因为我是infra这一块的，对训练不太了解，请预研同时给我输出报告，普及技术方案&原理。
 ## Timeline
 
 - [2026-08-04 15:14] /Report generate 初始化 progress_report.md 与 result_report.md
@@ -78,6 +85,15 @@ Completed（巩固阶段全部完成：环境基线+两份报告+infer.py CLI �
 
 ---
 
+- [2026-08-04 19:30] 用户发起 LoRA/SFT 预研（clone env + 研究 + 报告）
+- [2026-08-04 19:39] conda clone locate_anything → locate_anything_sft 完成（185 包，12G）
+- [2026-08-04 19:5x] 端到端 LoRA smoke 训练通过（r=64/sdpa/seq2048，13.05s/it，峰值 16.1GB）；补装依赖并绕过 DS sm_120 bug
+- [2026-08-04 19:58] 微调产物经 scripts/infer.py 验证推理正常（trainable 119,734,272，输出 5 框）
+- [2026-08-04 20:0x] reports/05_lora_sft_research.md 落盘
+- SFT 环境：conda activate locate_anything_sft；训练在 Eagle/Embodied 目录下用 torchrun --nproc_per_node=1 启动
+- 本机 LoRA 方案：r=64 + sdpa + seq<=2048 + grad_checkpoint + DS ZeRO-1/2（optimizer 加 torch_adam:true）；全参 SFT 单卡不可行
+- DeepSpeed 0.15.4 + sm_120：JIT FusedAdam 编译必失败（compute_1.），勿依赖 TORCH_CUDA_ARCH_LIST；用 torch_adam 或打补丁
+- 数据注意：JSONL/recipe 需无 BOM UTF-8；annotation/root 相对路径按 cwd 解析，建议绝对路径；坐标用 <n> token（[0,1000]）
 ## Notes
 
 - 报告：reports/03_environment_fa_laflash.md（环境/FA/la_flash）、reports/04_generation_mode_benchmark.md（速度-精度对比）
