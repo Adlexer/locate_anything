@@ -66,7 +66,7 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 
 ### 待办清单
 
-- [ ] 推送 `feat/codex/lora` 至 origin（b3eaab8, 6c09320）
+- [x] 推送 `feat/codex/lora` 至 origin（2026-08-06 用户手动推送，HEAD=aa30afa）
 - [ ] 人工伪标签修正（visualize_yolo.py 抽查 → 改 YOLO txt → 重建 JSONL/recipe）
 - [ ] 降采样脚本 + run_v2 重训 + eval_det 真实对比
 - [ ] 大图入训后复测 fast/hybrid 解码回归
@@ -135,6 +135,7 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - 训练/评测复现：reports/06 第 5 节
 - 伪标签类别建议：业务只关心两轮车时用 --merge-two-wheeler；高分辨率帧需降采样入训
 - [2026-08-05 02:2x] 用户提出缺标准化 eval 脚本；新增 scripts/eval/eval_det.py + README；holdout 上预训练/微调双模型标准评估通过（F1@Mean=1.000 自洽口径）
+- [2026-08-06] 用户手动推送 feat/codex/lora 至 origin（HEAD=aa30afa），本地/远端一致
 ## Notes
 
 - 报告：reports/03_environment_fa_laflash.md（环境/FA/la_flash）、reports/04_generation_mode_benchmark.md（速度-精度对比）

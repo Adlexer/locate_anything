@@ -85,7 +85,7 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 
 ### 待办
 
-- [ ] 推送 feat/codex/lora 至 origin
+- [x] 推送 feat/codex/lora 至 origin（2026-08-06 用户手动推送，HEAD=aa30afa）
 - [ ] 人工标注修正闭环
 - [ ] run_v2（降采样）重训 + 真实 F1 对比
 - [ ] fast/hybrid 大图回归复测
