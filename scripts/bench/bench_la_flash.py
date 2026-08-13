@@ -9,6 +9,7 @@ at batch sizes 1 and 4, max_new_tokens 8192.
 Run inside the WSL `locate_anything` conda env:
     python /mnt/c/Dev/locate_anything/scripts/bench/bench_la_flash.py
 """
+
 import json
 import shutil
 import subprocess
@@ -23,18 +24,35 @@ REQS = "/home/xu/la_flash_reqs.jsonl"
 OUT = PROJECT / "outputs" / "bench"
 
 REQUESTS = [
-    {"image": "/mnt/c/Dev/locate_anything/data/bus.jpg", "query": "person</c>bus</c>car"},
+    {
+        "image": "/mnt/c/Dev/locate_anything/data/bus.jpg",
+        "query": "person</c>bus</c>car",
+    },
     {"image": "/mnt/c/Dev/locate_anything/data/bus.jpg", "query": "people"},
-    {"image": "/mnt/c/Dev/locate_anything/data/bus.jpg",
-     "query": "person</c>bus</c>car</c>traffic light</c>tree</c>building</c>sidewalk"},
-    {"image": "/mnt/c/Dev/locate_anything/data/dense_text.png",
-     "query": "Detect all the text in box format."},
+    {
+        "image": "/mnt/c/Dev/locate_anything/data/bus.jpg",
+        "query": "person</c>bus</c>car</c>traffic light</c>tree</c>building</c>sidewalk",
+    },
+    {
+        "image": "/mnt/c/Dev/locate_anything/data/dense_text.png",
+        "query": "Detect all the text in box format.",
+    },
 ]
 
 CASES = [
     {"name": "sdpa_b1", "attn": "sdpa", "scheduler": "eager", "batch_size": 1},
-    {"name": "laflash_b1", "attn": "la_flash", "scheduler": "pipeline", "batch_size": 1},
-    {"name": "laflash_b4", "attn": "la_flash", "scheduler": "pipeline", "batch_size": 4},
+    {
+        "name": "laflash_b1",
+        "attn": "la_flash",
+        "scheduler": "pipeline",
+        "batch_size": 1,
+    },
+    {
+        "name": "laflash_b4",
+        "attn": "la_flash",
+        "scheduler": "pipeline",
+        "batch_size": 4,
+    },
     {"name": "sdpa_b4", "attn": "sdpa", "scheduler": "eager", "batch_size": 4},
 ]
 
@@ -52,8 +70,13 @@ class GpuSampler(threading.Thread):
         self._stop_event = threading.Event()
 
     def run(self):
-        cmd = ["nvidia-smi", "--query-gpu=memory.used,utilization.gpu",
-               "--format=csv,noheader,nounits", "-l", "1"]
+        cmd = [
+            "nvidia-smi",
+            "--query-gpu=memory.used,utilization.gpu",
+            "--format=csv,noheader,nounits",
+            "-l",
+            "1",
+        ]
         with open(self.log_path, "w") as f:
             p = subprocess.Popen(cmd, stdout=f, stderr=subprocess.STDOUT)
             while not self._stop_event.is_set() and p.poll() is None:
@@ -89,14 +112,22 @@ def run_case(case, env):
     out_jsonl = OUT / f"{case['name']}_out.jsonl"
     gpu_log = OUT / f"{case['name']}_gpu.log"
     cmd = [
-        "python", BATCH_INFER,
-        "--model", MODEL,
-        "--attn", case["attn"],
-        "--scheduler", case["scheduler"],
-        "--batch-size", str(case["batch_size"]),
-        "--max-new-tokens", "8192",
-        "--requests", REQS,
-        "--out", str(out_jsonl),
+        "python",
+        BATCH_INFER,
+        "--model",
+        MODEL,
+        "--attn",
+        case["attn"],
+        "--scheduler",
+        case["scheduler"],
+        "--batch-size",
+        str(case["batch_size"]),
+        "--max-new-tokens",
+        "8192",
+        "--requests",
+        REQS,
+        "--out",
+        str(out_jsonl),
     ]
     sampler = GpuSampler(gpu_log)
     sampler.start()
@@ -143,8 +174,11 @@ def main():
         print(f"[bench] running {case['name']} ...", flush=True)
         res = run_case(case, env)
         results.append(res)
-        print(f"[bench] {case['name']}: wall={res.get('wall_s')}s peak_vram={res.get('peak_vram_mb')}MB "
-              f"rc={res.get('rc')} rows={res.get('n_requests')}", flush=True)
+        print(
+            f"[bench] {case['name']}: wall={res.get('wall_s')}s peak_vram={res.get('peak_vram_mb')}MB "
+            f"rc={res.get('rc')} rows={res.get('n_requests')}",
+            flush=True,
+        )
     with open(OUT / "la_flash_results.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     print(f"[bench] wrote {OUT / 'la_flash_results.json'}")

@@ -18,6 +18,7 @@ Outputs:
   <out>/montage.jpg            contact sheet (--montage)
   <out>/summary.json           per-image stats + class distribution + issues
 """
+
 import argparse
 import json
 import os
@@ -27,18 +28,35 @@ from pathlib import Path
 
 try:
     from PIL import Image, ImageDraw, ImageFont
+
     HAVE_PIL = True
 except Exception:  # pragma: no cover
     Image = ImageDraw = ImageFont = None
     HAVE_PIL = False
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
-SKIP_DIR_NAMES = {"_annotated", "_probe", "_frames", "__pycache__", "previews", "outputs"}
+SKIP_DIR_NAMES = {
+    "_annotated",
+    "_probe",
+    "_frames",
+    "__pycache__",
+    "previews",
+    "outputs",
+}
 SKIP_FILE_RE = re.compile(r"_result\.|^classes\.txt$")
 PALETTE = [
-    (220, 20, 60), (30, 144, 255), (34, 139, 34), (255, 140, 0),
-    (138, 43, 226), (0, 206, 209), (255, 20, 147), (60, 179, 113),
-    (70, 130, 180), (255, 215, 0), (199, 21, 133), (0, 128, 128),
+    (220, 20, 60),
+    (30, 144, 255),
+    (34, 139, 34),
+    (255, 140, 0),
+    (138, 43, 226),
+    (0, 206, 209),
+    (255, 20, 147),
+    (60, 179, 113),
+    (70, 130, 180),
+    (255, 215, 0),
+    (199, 21, 133),
+    (0, 128, 128),
 ]
 
 
@@ -48,7 +66,11 @@ def load_classes(data_dir, cli_classes):
     else:
         cls_file = Path(data_dir) / "classes.txt"
         if cls_file.exists():
-            names = [ln.strip() for ln in cls_file.read_text(encoding="utf-8").splitlines() if ln.strip()]
+            names = [
+                ln.strip()
+                for ln in cls_file.read_text(encoding="utf-8").splitlines()
+                if ln.strip()
+            ]
         else:
             names = []
     return names
@@ -121,15 +143,37 @@ def draw_boxes(img, px_boxes, classes, title=None):
 def main():
     ap = argparse.ArgumentParser(description="YOLO dataset visualizer")
     ap.add_argument("--data", required=True, help="dataset root (walked recursively)")
-    ap.add_argument("--classes", default=None, help="comma-separated class names (default: <data>/classes.txt)")
-    ap.add_argument("--out", default=None, help="output dir (default: <data>/_yolo_viz)")
-    ap.add_argument("--max-side", type=int, default=0, help="downscale so longest side <= N px (0 = keep)")
-    ap.add_argument("--min-area", type=float, default=0.0, help="drop boxes with normalized area < min-area (0 = keep all)")
+    ap.add_argument(
+        "--classes",
+        default=None,
+        help="comma-separated class names (default: <data>/classes.txt)",
+    )
+    ap.add_argument(
+        "--out", default=None, help="output dir (default: <data>/_yolo_viz)"
+    )
+    ap.add_argument(
+        "--max-side",
+        type=int,
+        default=0,
+        help="downscale so longest side <= N px (0 = keep)",
+    )
+    ap.add_argument(
+        "--min-area",
+        type=float,
+        default=0.0,
+        help="drop boxes with normalized area < min-area (0 = keep all)",
+    )
     ap.add_argument("--montage", action="store_true", help="also build a contact sheet")
     ap.add_argument("--cols", type=int, default=4, help="montage columns")
-    ap.add_argument("--thumb", type=int, default=360, help="montage thumbnail long side")
-    ap.add_argument("--only-annotated", action="store_true", help="skip images without a txt label")
-    ap.add_argument("--overwrite", action="store_true", help="overwrite existing previews")
+    ap.add_argument(
+        "--thumb", type=int, default=360, help="montage thumbnail long side"
+    )
+    ap.add_argument(
+        "--only-annotated", action="store_true", help="skip images without a txt label"
+    )
+    ap.add_argument(
+        "--overwrite", action="store_true", help="overwrite existing previews"
+    )
     ap.add_argument("--quiet", action="store_true")
     args = ap.parse_args()
 
@@ -155,7 +199,9 @@ def main():
     # collect images
     images = []
     for dirpath, dirnames, filenames in os.walk(data):
-        dirnames[:] = [d for d in dirnames if d not in skip_dirs and not d.startswith("_")]
+        dirnames[:] = [
+            d for d in dirnames if d not in skip_dirs and not d.startswith("_")
+        ]
         for f in filenames:
             if SKIP_FILE_RE.search(f):
                 continue
@@ -186,9 +232,13 @@ def main():
                     class_counts[classes[cid]] = class_counts.get(classes[cid], 0) + 1
                 else:
                     unknown_boxes += 1
-        per_image[rel] = {"boxes": len(boxes),
-                          "classes": sorted({classes[cid] for cid, *_ in boxes if cid < len(classes)}),
-                          "unknown_class_boxes": sum(1 for cid, *_ in boxes if cid >= len(classes))}
+        per_image[rel] = {
+            "boxes": len(boxes),
+            "classes": sorted(
+                {classes[cid] for cid, *_ in boxes if cid < len(classes)}
+            ),
+            "unknown_class_boxes": sum(1 for cid, *_ in boxes if cid >= len(classes)),
+        }
 
         if args.only_annotated and not boxes:
             continue
@@ -223,13 +273,21 @@ def main():
         "per_image": per_image,
         "issues": issues_all,
     }
-    (out_root / "summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out_root / "summary.json").write_text(
+        json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     if not args.quiet:
-        print(f"[yolo-viz] images={len(images)} annotated={annotated} empty={empty} missing={missing}")
-        print(f"[yolo-viz] total_boxes={summary['total_boxes']} class_counts={class_counts}")
+        print(
+            f"[yolo-viz] images={len(images)} annotated={annotated} empty={empty} missing={missing}"
+        )
+        print(
+            f"[yolo-viz] total_boxes={summary['total_boxes']} class_counts={class_counts}"
+        )
         if issues_all:
-            print(f"[yolo-viz] files with label issues: {len(issues_all)} (see summary.json)")
+            print(
+                f"[yolo-viz] files with label issues: {len(issues_all)} (see summary.json)"
+            )
         print(f"[yolo-viz] previews -> {preview_dir} (rendered={rendered})")
 
     if args.montage and montage_tiles:
@@ -247,7 +305,12 @@ def main():
             r, c = divmod(idx, cols)
             x, y = c * tw, r * cell_h
             sheet.paste(tile, (x, y))
-            draw.text((x + 4, y + th + 4), Path(rel).name[:40], fill=(255, 255, 255), font=font)
+            draw.text(
+                (x + 4, y + th + 4),
+                Path(rel).name[:40],
+                fill=(255, 255, 255),
+                font=font,
+            )
         montage_path = out_root / "montage.jpg"
         sheet.save(montage_path, quality=88)
         if not args.quiet:

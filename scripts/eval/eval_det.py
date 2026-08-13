@@ -21,6 +21,7 @@ Usage (WSL `locate_anything_sft` env):
 
 Output: <out> JSON (per-image + per-class + overall) and a console table.
 """
+
 import argparse
 import json
 import os
@@ -36,10 +37,19 @@ from locateanything_worker import LocateAnythingWorker  # noqa: E402
 from PIL import Image
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png"}
-SKIP_DIR_NAMES = {"_annotated", "_probe", "_frames_aux", "__pycache__", "previews", "outputs"}
+SKIP_DIR_NAMES = {
+    "_annotated",
+    "_probe",
+    "_frames_aux",
+    "__pycache__",
+    "previews",
+    "outputs",
+}
 SKIP_FILE_RE = re.compile(r"_result\.|\.json$|\.jsonl$|\.txt$")
 
-BOX_RE = re.compile(r"<ref>(.*?)</ref>|<box><(\d+)><(\d+)><(\d+)><(\d+)></box>|<box>None</box>")
+BOX_RE = re.compile(
+    r"<ref>(.*?)</ref>|<box><(\d+)><(\d+)><(\d+)><(\d+)></box>|<box>None</box>"
+)
 IOU_THRESHOLDS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 
 
@@ -48,7 +58,7 @@ def iou(a, b):
     x1, y1 = max(a[0], b[0]), max(a[1], b[1])
     x2, y2 = min(a[2], b[2]), min(a[3], b[3])
     inter = max(0.0, x2 - x1) * max(0.0, y2 - y1)
-    ua = (a[2]-a[0])*(a[3]-a[1]) + (b[2]-b[0])*(b[3]-b[1]) - inter
+    ua = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
     return inter / ua if ua > 0 else 0.0
 
 
@@ -57,19 +67,22 @@ def parse_gt(txt_path, n_classes):
     boxes, issues = [], []
     if not txt_path.exists():
         return boxes, ["missing_label"]
-    for i, raw in enumerate(txt_path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+    for i, raw in enumerate(
+        txt_path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+    ):
         p = raw.split()
         if len(p) != 5:
             issues.append(f"line{i}:fields={len(p)}")
             continue
         try:
-            cid = int(float(p[0])); cx, cy, w, h = (float(x) for x in p[1:5])
+            cid = int(float(p[0]))
+            cx, cy, w, h = (float(x) for x in p[1:5])
         except ValueError:
             issues.append(f"line{i}:non-numeric")
             continue
         if cid < 0 or cid >= n_classes:
             issues.append(f"line{i}:class_id={cid}")
-        boxes.append((cid, (cx - w/2, cy - h/2, cx + w/2, cy + h/2)))
+        boxes.append((cid, (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)))
     return boxes, issues
 
 
@@ -98,7 +111,9 @@ def nms_per_class(preds, thr):
         by_cls.setdefault(cid, []).append(box)
     out = []
     for cid, boxes in by_cls.items():
-        boxes = sorted(boxes, key=lambda b: -(b[2]-b[0])*(b[3]-b[1]))  # largest first
+        boxes = sorted(
+            boxes, key=lambda b: -(b[2] - b[0]) * (b[3] - b[1])
+        )  # largest first
         keep = []
         for b in boxes:
             if all(iou(b, k) < thr for k in keep):
@@ -156,13 +171,25 @@ def collect_images(data_dir, split_jsonl):
 def main():
     ap = argparse.ArgumentParser(description="LocateAnything vs YOLO-GT detection eval")
     ap.add_argument("--model", required=True)
-    ap.add_argument("--data", required=True, help="dataset root (GT txt sits next to images)")
-    ap.add_argument("--classes", required=True, help='comma-separated class names; index = YOLO class id')
-    ap.add_argument("--split", default=None, help='optional JSONL with "image" fields (e.g. val.jsonl)')
+    ap.add_argument(
+        "--data", required=True, help="dataset root (GT txt sits next to images)"
+    )
+    ap.add_argument(
+        "--classes",
+        required=True,
+        help="comma-separated class names; index = YOLO class id",
+    )
+    ap.add_argument(
+        "--split",
+        default=None,
+        help='optional JSONL with "image" fields (e.g. val.jsonl)',
+    )
     ap.add_argument("--out", required=True, help="output JSON path")
     ap.add_argument("--mode", default="slow", choices=["fast", "slow", "hybrid"])
     ap.add_argument("--max-new-tokens", type=int, default=8192)
-    ap.add_argument("--nms", type=float, default=0.5, help="class-wise NMS IoU (0 = off)")
+    ap.add_argument(
+        "--nms", type=float, default=0.5, help="class-wise NMS IoU (0 = off)"
+    )
     ap.add_argument("--report-md", default=None, help="optional markdown report path")
     args = ap.parse_args()
 
@@ -180,7 +207,15 @@ def main():
     print(f"[eval] model loaded in {time.time()-t0:.1f}s")
 
     # accumulators: per class -> {gt_count, per-threshold tp/fp/fn, matched_ious}
-    acc = {cid: {"gt": 0, "pred": 0, "t": {thr: [0, 0, 0] for thr in IOU_THRESHOLDS}, "ious": []} for cid in classes.values()}
+    acc = {
+        cid: {
+            "gt": 0,
+            "pred": 0,
+            "t": {thr: [0, 0, 0] for thr in IOU_THRESHOLDS},
+            "ious": [],
+        }
+        for cid in classes.values()
+    }
     per_image = {}
     unknown_total = 0
     gt_issues = {}
@@ -192,9 +227,17 @@ def main():
             gt_issues[rel] = issues
         img = Image.open(img_path).convert("RGB")
         cats = list(classes)
-        r = worker.detect(img, cats, generation_mode=args.mode,
-                          max_new_tokens=args.max_new_tokens, temperature=0.0,
-                          top_p=0.9, top_k=0, repetition_penalty=1.1, verbose=False)
+        r = worker.detect(
+            img,
+            cats,
+            generation_mode=args.mode,
+            max_new_tokens=args.max_new_tokens,
+            temperature=0.0,
+            top_p=0.9,
+            top_k=0,
+            repetition_penalty=1.1,
+            verbose=False,
+        )
         preds, unknown = parse_pred(r["answer"], classes)
         unknown_total += unknown
         preds = nms_per_class(preds, args.nms)
@@ -213,11 +256,18 @@ def main():
                 acc[cid]["t"][thr][0] += tp
                 acc[cid]["t"][thr][1] += fp
                 acc[cid]["t"][thr][2] += fn
-                row[f"tp@{thr}"] += tp; row[f"fp@{thr}"] += fp; row[f"fn@{thr}"] += fn
+                row[f"tp@{thr}"] += tp
+                row[f"fp@{thr}"] += fp
+                row[f"fn@{thr}"] += fn
             _, _, _, ious = match(cgts, cpreds, 0.5)
             acc[cid]["ious"].extend(ious)
-        per_image[rel] = {"gt_boxes": len(gts), "pred_boxes": len(preds),
-                          "tp@0.5": row["tp@0.5"], "fp@0.5": row["fp@0.5"], "fn@0.5": row["fn@0.5"]}
+        per_image[rel] = {
+            "gt_boxes": len(gts),
+            "pred_boxes": len(preds),
+            "tp@0.5": row["tp@0.5"],
+            "fp@0.5": row["fp@0.5"],
+            "fn@0.5": row["fn@0.5"],
+        }
 
     # ---- aggregate metrics ----
     def f1_at(thr):
@@ -226,21 +276,34 @@ def main():
             tp, fp, fn = a["t"][thr]
             p = tp / (tp + fp) if tp + fp > 0 else 0.0
             r = tp / (tp + fn) if tp + fn > 0 else 0.0
-            out[cid] = {"tp": tp, "fp": fp, "fn": fn, "precision": round(p, 4),
-                        "recall": round(r, 4), "f1": round(f1(p, r), 4)}
+            out[cid] = {
+                "tp": tp,
+                "fp": fp,
+                "fn": fn,
+                "precision": round(p, 4),
+                "recall": round(r, 4),
+                "f1": round(f1(p, r), 4),
+            }
         return out
 
     per_class = {}
     for name, cid in sorted(classes.items(), key=lambda kv: kv[1]):
         a = acc[cid]
         f1s = []
-        row = {"gt": a["gt"], "pred": a["pred"],
-               "matched_ious": round(sum(a["ious"]) / len(a["ious"]), 4) if a["ious"] else None}
+        row = {
+            "gt": a["gt"],
+            "pred": a["pred"],
+            "matched_ious": (
+                round(sum(a["ious"]) / len(a["ious"]), 4) if a["ious"] else None
+            ),
+        }
         for thr in [0.5, 0.75, 0.9]:
             tp, fp, fn = a["t"][thr]
             p = tp / (tp + fp) if tp + fp > 0 else 0.0
             r = tp / (tp + fn) if tp + fn > 0 else 0.0
-            row[f"P@{thr}"] = round(p, 4); row[f"R@{thr}"] = round(r, 4); row[f"F1@{thr}"] = round(f1(p, r), 4)
+            row[f"P@{thr}"] = round(p, 4)
+            row[f"R@{thr}"] = round(r, 4)
+            row[f"F1@{thr}"] = round(f1(p, r), 4)
         for thr in IOU_THRESHOLDS:
             tp, fp, fn = a["t"][thr]
             p = tp / (tp + fp) if tp + fp > 0 else 0.0
@@ -253,13 +316,21 @@ def main():
     macro_classes = [name for name, row in per_class.items() if row["gt"] > 0]
     macro = {"classes_in_macro": macro_classes}
     for key in ["F1@Mean", "F1@0.5", "F1@0.75", "F1@0.9", "P@0.5", "R@0.5"]:
-        vals = [per_class[n][key] for n in macro_classes if per_class[n].get(key) is not None]
+        vals = [
+            per_class[n][key]
+            for n in macro_classes
+            if per_class[n].get(key) is not None
+        ]
         macro[key] = round(sum(vals) / len(vals), 4) if vals else None
 
     result = {
-        "model": args.model, "data": str(data), "classes": list(classes),
-        "mode": args.mode, "nms_iou": args.nms,
-        "images": len(images), "unknown_label_preds": unknown_total,
+        "model": args.model,
+        "data": str(data),
+        "classes": list(classes),
+        "mode": args.mode,
+        "nms_iou": args.nms,
+        "images": len(images),
+        "unknown_label_preds": unknown_total,
         "gt_issues": gt_issues,
         "macro_avg": macro,
         "per_class": per_class,
@@ -271,28 +342,41 @@ def main():
 
     # console table
     hdr = f"{'class':22s} {'GT':>3s} {'Pred':>4s} {'P@.5':>6s} {'R@.5':>6s} {'F1@.5':>6s} {'F1@.75':>6s} {'F1@.9':>6s} {'F1@Mean':>8s} {'mIoU':>6s}"
-    print(hdr); print("-" * len(hdr))
+    print(hdr)
+    print("-" * len(hdr))
     for name, row in per_class.items():
         miou = row["matched_ious"] if row["matched_ious"] is not None else 0.0
-        print(f"{name:22s} {row['gt']:3d} {row['pred']:4d} {row['P@0.5']:6.3f} {row['R@0.5']:6.3f} "
-              f"{row['F1@0.5']:6.3f} {row['F1@0.75']:6.3f} {row['F1@0.9']:6.3f} {row['F1@Mean']:8.3f} {miou:6.3f}")
+        print(
+            f"{name:22s} {row['gt']:3d} {row['pred']:4d} {row['P@0.5']:6.3f} {row['R@0.5']:6.3f} "
+            f"{row['F1@0.5']:6.3f} {row['F1@0.75']:6.3f} {row['F1@0.9']:6.3f} {row['F1@Mean']:8.3f} {miou:6.3f}"
+        )
     m = macro
     print("-" * len(hdr))
-    print(f"{'macro':22s} {'':3s} {'':4s} {m['P@0.5']:6.3f} {m['R@0.5']:6.3f} "
-          f"{m['F1@0.5']:6.3f} {m['F1@0.75']:6.3f} {m['F1@0.9']:6.3f} {m['F1@Mean']:8.3f} {'':6s}")
+    print(
+        f"{'macro':22s} {'':3s} {'':4s} {m['P@0.5']:6.3f} {m['R@0.5']:6.3f} "
+        f"{m['F1@0.5']:6.3f} {m['F1@0.75']:6.3f} {m['F1@0.9']:6.3f} {m['F1@Mean']:8.3f} {'':6s}"
+    )
     print(f"[eval] wrote {out}  ({time.time()-t0:.0f}s)")
 
     if args.report_md:
-        lines = [f"# Detection Eval: {Path(args.model).name}", "",
-                 f"- data: {args.data} | images: {len(images)} | mode: {args.mode} | nms: {args.nms} | classes: {list(classes)}", "",
-                 "| class | GT | Pred | P@.5 | R@.5 | F1@.5 | F1@.75 | F1@.9 | F1@Mean | mIoU |",
-                 "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+        lines = [
+            f"# Detection Eval: {Path(args.model).name}",
+            "",
+            f"- data: {args.data} | images: {len(images)} | mode: {args.mode} | nms: {args.nms} | classes: {list(classes)}",
+            "",
+            "| class | GT | Pred | P@.5 | R@.5 | F1@.5 | F1@.75 | F1@.9 | F1@Mean | mIoU |",
+            "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        ]
         for name, row in per_class.items():
             miou = row["matched_ious"] if row["matched_ious"] is not None else 0.0
-            lines.append(f"| {name} | {row['gt']} | {row['pred']} | {row['P@0.5']:.3f} | {row['R@0.5']:.3f} | "
-                         f"{row['F1@0.5']:.3f} | {row['F1@0.75']:.3f} | {row['F1@0.9']:.3f} | {row['F1@Mean']:.3f} | {miou:.3f} |")
-        lines.append(f"| **macro** |  |  | **{m['P@0.5']:.3f}** | **{m['R@0.5']:.3f}** | **{m['F1@0.5']:.3f}** | "
-                     f"**{m['F1@0.75']:.3f}** | **{m['F1@0.9']:.3f}** | **{m['F1@Mean']:.3f}** |  |")
+            lines.append(
+                f"| {name} | {row['gt']} | {row['pred']} | {row['P@0.5']:.3f} | {row['R@0.5']:.3f} | "
+                f"{row['F1@0.5']:.3f} | {row['F1@0.75']:.3f} | {row['F1@0.9']:.3f} | {row['F1@Mean']:.3f} | {miou:.3f} |"
+            )
+        lines.append(
+            f"| **macro** |  |  | **{m['P@0.5']:.3f}** | **{m['R@0.5']:.3f}** | **{m['F1@0.5']:.3f}** | "
+            f"**{m['F1@0.75']:.3f}** | **{m['F1@0.9']:.3f}** | **{m['F1@Mean']:.3f}** |  |"
+        )
         Path(args.report_md).write_text("\n".join(lines) + "\n", encoding="utf-8")
         print(f"[eval] wrote {args.report_md}")
 

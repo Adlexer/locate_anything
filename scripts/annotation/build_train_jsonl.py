@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Build LoRA training JSONL + recipe from a zero-shot annotation manifest.
 
 Input : outputs/annotation_detect/manifest.jsonl (image rel path + boxes in [0,1000])
@@ -9,6 +9,7 @@ Samples use LocateAnything training format:
                     {"from":"gpt","value":"<ref>label</ref><box><x1><y1><x2><y2></box>..."}],
    "image":"relative/path.jpg"}
 """
+
 import argparse
 import os
 import json
@@ -31,7 +32,7 @@ def boxes_to_answer(boxes, merge_map=None):
 
 
 def to_wsl_path(path):
-    """Convert a Windows path (C:\...) to a WSL /mnt/c/... path for training in WSL."""
+    r"""Convert a Windows path (C:\...) to a WSL /mnt/c/... path for training in WSL."""
     p = str(path)
     if os.name == "nt" and len(p) > 2 and p[1] == ":":
         return "/mnt/" + p[0].lower() + p[2:].replace("\\", "/")
@@ -39,17 +40,36 @@ def to_wsl_path(path):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Build LoRA training JSONL/recipe from annotation manifest")
+    ap = argparse.ArgumentParser(
+        description="Build LoRA training JSONL/recipe from annotation manifest"
+    )
     ap.add_argument("--manifest", required=True, help="manifest.jsonl path")
     ap.add_argument("--data", required=True, help="dataset root (recipe root)")
     ap.add_argument("--out", required=True, help="output dir for jsonl + recipe")
-    ap.add_argument("--holdout", type=int, default=8, help="number of holdout images (val, for before/after)")
+    ap.add_argument(
+        "--holdout",
+        type=int,
+        default=8,
+        help="number of holdout images (val, for before/after)",
+    )
     ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--repeat", type=float, default=3.0, help="recipe repeat_time (oversample small data)")
-    ap.add_argument("--min-area", type=float, default=0.002,
-                    help="drop boxes with normalized area < min-area (tiny boxes are noise)")
-    ap.add_argument("--merge-two-wheeler", action="store_true",
-                    help="merge bicycle -> electric scooter (teacher subtype is noisy)")
+    ap.add_argument(
+        "--repeat",
+        type=float,
+        default=3.0,
+        help="recipe repeat_time (oversample small data)",
+    )
+    ap.add_argument(
+        "--min-area",
+        type=float,
+        default=0.002,
+        help="drop boxes with normalized area < min-area (tiny boxes are noise)",
+    )
+    ap.add_argument(
+        "--merge-two-wheeler",
+        action="store_true",
+        help="merge bicycle -> electric scooter (teacher subtype is noisy)",
+    )
     args = ap.parse_args()
 
     manifest = []
@@ -62,7 +82,11 @@ def main():
     # keep only samples with >=1 box; drop tiny boxes
     keep = []
     for m in manifest:
-        boxes = [b for b in m["boxes"] if (b["x2"] - b["x1"]) * (b["y2"] - b["y1"]) / 1e6 >= args.min_area]
+        boxes = [
+            b
+            for b in m["boxes"]
+            if (b["x2"] - b["x1"]) * (b["y2"] - b["y1"]) / 1e6 >= args.min_area
+        ]
         if boxes:
             keep.append({"image": m["image"], "boxes": boxes})
     print(f"[build] manifest={len(manifest)} with_boxes={len(keep)}")
@@ -70,7 +94,7 @@ def main():
     rng = random.Random(args.seed)
     rng.shuffle(keep)
     val = keep[: args.holdout]
-    train = keep[args.holdout:]
+    train = keep[args.holdout :]
     print(f"[build] train={len(train)} val={len(val)}")
 
     merge_map = {"bicycle": "electric scooter"} if args.merge_two_wheeler else None

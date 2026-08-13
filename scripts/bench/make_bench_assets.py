@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Create a synthetic dense-text image (screenshot-like) with known ground-truth
 text boxes, for LocateAnything OCR / detect_text precision evaluation."""
+
 import json
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -51,8 +52,20 @@ def main():
     gt.append({"text": sub, "x1": 52, "y1": 216, "x2": bb[2] + 8, "y2": bb[3] + 8})
 
     # Sidebar menu
-    draw.rectangle([40, 320, 320, 1580], fill=(255, 255, 255), outline=(220, 220, 225), width=1)
-    menu = ["Dashboard", "Analytics", "Reports", "Settings", "Billing", "API Keys", "Team", "Activity", "Storage"]
+    draw.rectangle(
+        [40, 320, 320, 1580], fill=(255, 255, 255), outline=(220, 220, 225), width=1
+    )
+    menu = [
+        "Dashboard",
+        "Analytics",
+        "Reports",
+        "Settings",
+        "Billing",
+        "API Keys",
+        "Team",
+        "Activity",
+        "Storage",
+    ]
     y = 350
     for m in menu:
         draw.text((64, y), m, fill=(60, 65, 80), font=body_font)
@@ -62,27 +75,76 @@ def main():
 
     # Main content cards
     cards = [
-        ("Revenue overview", ["Monthly recurring revenue grew 18%.", "Annual plan conversion rate: 24.5%.",
-                              "Net revenue retention reached 131%.", "Churn dropped to 2.1% this quarter."]),
-        ("Deployment status", ["All 42 regions are healthy.", "Latest model v3.2 deployed at 06:00 UTC.",
-                               "Average inference latency: 31 ms.", "Zero failed requests in the last hour."]),
-        ("Customer highlights", ["Acme Corp signed a 3-year enterprise deal.", "Globex migrated 12M records.",
-                                 "Initech doubled their API quota.", "Umbrella adopted the on-prem plan."]),
-        ("Recent activity", ["User alice created workspace 'vision-lab'.", "API key rotated by admin.",
-                             "New dataset 'streetview-2026' indexed.", "Alert threshold updated for p99 latency."]),
+        (
+            "Revenue overview",
+            [
+                "Monthly recurring revenue grew 18%.",
+                "Annual plan conversion rate: 24.5%.",
+                "Net revenue retention reached 131%.",
+                "Churn dropped to 2.1% this quarter.",
+            ],
+        ),
+        (
+            "Deployment status",
+            [
+                "All 42 regions are healthy.",
+                "Latest model v3.2 deployed at 06:00 UTC.",
+                "Average inference latency: 31 ms.",
+                "Zero failed requests in the last hour.",
+            ],
+        ),
+        (
+            "Customer highlights",
+            [
+                "Acme Corp signed a 3-year enterprise deal.",
+                "Globex migrated 12M records.",
+                "Initech doubled their API quota.",
+                "Umbrella adopted the on-prem plan.",
+            ],
+        ),
+        (
+            "Recent activity",
+            [
+                "User alice created workspace 'vision-lab'.",
+                "API key rotated by admin.",
+                "New dataset 'streetview-2026' indexed.",
+                "Alert threshold updated for p99 latency.",
+            ],
+        ),
     ]
     cx, cw = 380, 840
     cy = 330
     for title, lines in cards:
-        draw.rectangle([cx, cy, cx + cw, cy + 300], fill=(255, 255, 255), outline=(220, 220, 225), width=1)
+        draw.rectangle(
+            [cx, cy, cx + cw, cy + 300],
+            fill=(255, 255, 255),
+            outline=(220, 220, 225),
+            width=1,
+        )
         draw.text((cx + 20, cy + 18), title, fill=(30, 32, 42), font=title_font)
         bb = text_bbox(draw, (cx + 20, cy + 18), title, title_font)
-        gt.append({"text": title, "x1": cx + 12, "y1": cy + 12, "x2": cx + cw - 12, "y2": bb[3] + 12})
+        gt.append(
+            {
+                "text": title,
+                "x1": cx + 12,
+                "y1": cy + 12,
+                "x2": cx + cw - 12,
+                "y2": bb[3] + 12,
+            }
+        )
         ty = bb[3] + 26
         for ln in lines:
             draw.text((cx + 20, ty), ln, fill=(75, 78, 90), font=body_font)
             bb = text_bbox(draw, (cx + 20, ty), ln, body_font)
-            gt.append({"text": ln, "x1": cx + 12, "y1": ty - 4, "x2": cx + cw - 12, "y2": bb[3] + 4})
+            gt.append(
+                {
+                    "text": ln,
+                    "x1": cx + 12,
+                    "y1": ty - 4,
+                    "x2": cx + cw - 12,
+                    "y2": bb[3] + 4,
+                }
+            )
             ty += 58
         cy += 320
 
@@ -95,7 +157,12 @@ def main():
 
     img.save(IMG_PATH, quality=95)
     with open(GT_PATH, "w", encoding="utf-8") as f:
-        json.dump({"image": str(IMG_PATH), "width": W, "height": H, "boxes": gt}, f, ensure_ascii=False, indent=2)
+        json.dump(
+            {"image": str(IMG_PATH), "width": W, "height": H, "boxes": gt},
+            f,
+            ensure_ascii=False,
+            indent=2,
+        )
     print(f"wrote {IMG_PATH} ({W}x{H}) with {len(gt)} GT boxes -> {GT_PATH}")
 
 

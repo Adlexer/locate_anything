@@ -1,0 +1,5 @@
+# Reproducible Python tooling config (formatter/linter).
+# Formatter: black 26.x (2025 stable style), run as: black scripts
+[tool.black]
+line-length = 88
+target-version = ["py310"]
