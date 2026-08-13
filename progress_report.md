@@ -2,13 +2,19 @@
 
 ## Task
 
-LocateAnything 真实小数据集验证：1) 预训练模型零样本标注能力（煤气罐/电动车/自行车，输出 YOLO txt 落数据集同目录，smoke 代码落 scripts/annotation/）；2) 小批量伪标签 LoRA 训练验证。本阶段已完成并落盘报告 06，附显存事故复盘与 launcher 改进。
+（阶段一·已完成）LocateAnything 真实小数据集验证：1) 预训练模型零样本标注能力（煤气罐/电动车/自行车，输出 YOLO txt 落数据集同目录，smoke 代码落 scripts/annotation/）；2) 小批量伪标签 LoRA 训练验证。已落盘报告 06，附显存事故复盘与 launcher 改进。
+
+（阶段二·进行中）真实标注反馈闭环 + YOLO 训推专项：
+1. 完善真实标注反馈闭环：人工修正伪标签 → 重建训练数据 → LoRA 重训 → eval_det 真实 F1；
+2. YOLO 选型调研：训练 = AI 工作站（RTX5060Ti，甚至双卡）；导出与推理 = 嵌入式设备/摄像头/无人机等小 TOPS 算力设备；实验阶段允许推理本地验证；
+3. YOLO 训推框架建立后，探索标注→训练→导出自动化闭环工作流（可 agent skill 化）；
+4. 环境在 WSL 新建 yolo 专用 conda 隔离依赖；维持报告落盘格式 + reports/INDEX.md 索引；代码经 black 规范化；新任务代码入分支 feat/codex/yolo。
 
 ---
 
 ## Current Status
 
-Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落盘；遗留 2 个待决事项见 Next Step）
+Running（阶段一完成；阶段二进行中：真实标注反馈闭环 → YOLO 选型调研与训推框架 → 闭环工作流）
 
 ---
 
@@ -48,9 +54,16 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - [报告] reports/06_zeroshot_annotation_and_lora_validation.md 落盘（结论/数据/能力表/训练对比/显存复盘/下一步）
 
 - [eval] 标准化检测评估脚本落盘 scripts/eval/{eval_det.py, README.md}：模型 vs YOLO GT，逐类 P/R/F1@IoU(0.5/0.75/0.9) + F1@Mean + matched-IoU + 逐图明细，JSON+MD；预训练与微调模型在 8 张 holdout 上均为 macro F1@Mean=1.000（自洽口径），gas mIoU 0.992 vs 0.985
+- [整理] black 26.5.1 规范化 scripts/ 全部 13 个 py（Eagle/ 上游保持不动），新增 root pyproject.toml 锁定格式配置；提交 e6aab29 并推送 feat/codex/lora
+- [整理] 自 feat/codex/lora@e6aab29 签出新分支 feat/codex/yolo 并推送
+- [索引] 新增 reports/INDEX.md 索引机制（01-06 登记 + 07-10 占位），双 report 同步体现
+
 ## In Progress
 
-- 无（巩固任务已收尾，等待用户后续指令）
+- [进行中] 真实标注反馈闭环：visualize 抽检 → 人工修正 YOLO txt → 重建 manifest/JSONL/recipe → LoRA run_v2 重训 → eval_det 真实 F1
+- [规划] YOLO 选型调研：双场景（训练工作站 / 嵌入式小算力推理导出）模型与框架评估
+- [规划] WSL 新建 yolo 专用 conda 环境 + YOLO 训推框架（训练/导出/本地推理验证）
+- [规划] 标注→训练→导出自动化闭环工作流（agent skill 化方案）
 
 ---
 
@@ -58,11 +71,11 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 
 ### 建议（按优先级）
 
-1. **真实标注反馈闭环**（最有价值）：用 `scripts/annotation/visualize_yolo.py` 抽查/人工修正 30-50 条伪标签（重点 scooter/bicycle 混淆）→ `build_train_jsonl.py` 重建 train/val → LoRA 重训 → `scripts/eval/eval_det.py` 出**真实** F1（当前 holdout 1.000 是自洽口径，偏乐观）；
-2. **高分辨率帧先降采样**（≤1280px，视觉 token<2048）再入训，否则 seq=2048 下 1080p 帧被训练丢弃（本次已验证）；
-3. **类别策略**：业务只关心「两轮车」时用 `--merge-two-wheeler` 合并 bicycle→electric scooter，降子类噪声；
-4. **部署**：1080p 大图推理优先 `generation-mode=slow`；待大图入训后再评估 hybrid；
-5. 服务化（FastAPI / locateanything_worker + infer.py）或批量推理。
+1. **真实标注反馈闭环**（本阶段首要）：抽检/人工修正伪标签（重点 scooter/bicycle 混淆）→ 重建 manifest/JSONL/recipe → LoRA run_v2 重训 → eval_det 出真实 F1；
+2. **YOLO 选型调研**（报告 08）：训练 = AI 工作站 RTX5060Ti（单/双卡）；导出与推理 = 嵌入式/摄像头/无人机小 TOPS 设备；实验期本地推理验证；
+3. **YOLO 训推框架**（报告 09）：WSL 新建 yolo conda 环境；训练/导出（ONNX·TensorRT·INT8）/本地推理验证；
+4. **标注→训练→导出闭环工作流**（报告 10）：含 agent skill 化方案；
+5. 报告 07 落盘真实 F1 结论；更新 INDEX + 双 report，提交推送 feat/codex/yolo。
 
 ### 待办清单
 
@@ -71,6 +84,10 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - [ ] 降采样脚本 + run_v2 重训 + eval_det 真实对比
 - [ ] 大图入训后复测 fast/hybrid 解码回归
 - [ ] 服务化 / 批量推理
+
+- [ ] YOLO 选型调研落盘（报告 08）
+- [ ] WSL yolo conda 环境 + 训推框架（报告 09）
+- [ ] 标注→训练→导出闭环工作流（报告 10，含 skill 化）
 
 ## User Requests
 
@@ -87,6 +104,12 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - [2026-08-04 20:05] 下一步任务：1.整理./scripts目录 2.落盘LoRA训练的启动监控脚本
 - [2026-08-05 01:40] 巧了，我这正好有些数据集给你：C:\Data\datasets\detect，分别是煤气罐和电动车（包含少量自行车）图片和视频的小数据集，没有任何标注，现在我想验证：1.你的预训练模型的识别标注能力（对不常见物体），输出为YOLO格式的标注txt，放到数据集同目录下，smoke代码落盘：./scripts/annotation/ 2.小批量数据的LoRA训练验证。
 - [2026-08-05 02:05] 这个训练配置的内存占用太极限了，差点把宿主windows都炸掉，先等待这次训练完成吧，下次记得吸取教训。
+- [2026-08-13 13:0x] 这个专项任务我们将完善最后的真实标注反馈闭环，然后将重心转移到YOLO模型的训推中。首先需要明确几点：
+  1.目前locate anything的最终设计目标为YOLO数据集的一种自动标注流水线，而且能够通过标注反馈闭环，人工标注也像是某种RL，持续迭代标注质量直到稳定。
+  2.YOLO在历史上已经迭代了相当多的版本，在训推任务开始之前我希望先做足选型和调研工作，评估两种使用场景：训练是AI工作站（RTX5060Ti，甚至双卡），导出和推理是嵌入式设备/摄像头/无人机等小TOPS算力设备。当前实验阶段可以允许推理在本地验证。
+  3.当YOLO完成训推框架的建立之后，探索某种和标注流水线一起闭环的工作流，形成标注->训练->导出的自动化流水线，你也可以以skill的方式建立在agent上的自动化。具体方案由你调研决定。
+  4.具体项目细节注意：开发环境对标之前任务，在wsl上新建yolo专用conda环境以隔离依赖；注意维持报告落盘格式，并且要补充建立相应的索引机制：./reports/INDEX.md，双report中也要有所体现；任务开始之前对当前代码分支未提交上库部分做整理收尾上库，使用formatter对python代码进行自动规范化；新任务代码提交到新分支：feat/codex/yolo，由当前分支签出。
+
 ## Timeline
 
 - [2026-08-04 15:14] /Report generate 初始化 progress_report.md 与 result_report.md
@@ -136,6 +159,10 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - 伪标签类别建议：业务只关心两轮车时用 --merge-two-wheeler；高分辨率帧需降采样入训
 - [2026-08-05 02:2x] 用户提出缺标准化 eval 脚本；新增 scripts/eval/eval_det.py + README；holdout 上预训练/微调双模型标准评估通过（F1@Mean=1.000 自洽口径）
 - [2026-08-06] 用户手动推送 feat/codex/lora 至 origin（HEAD=aa30afa），本地/远端一致
+- [2026-08-13 13:0x] 用户发起新专项：完成真实标注反馈闭环 + 转入 YOLO 训推（选型调研、双场景评估、闭环工作流、yolo conda 隔离、INDEX 索引、black 规范化、分支 feat/codex/yolo）
+- [2026-08-13 13:1x] black 26.5.1 规范化 scripts/ 13 个 py + root pyproject.toml；提交 e6aab29 推送 feat/codex/lora
+- [2026-08-13 13:1x] 签出并推送 feat/codex/yolo；建立 reports/INDEX.md 索引机制
+
 ## Notes
 
 - 报告：reports/03_environment_fa_laflash.md（环境/FA/la_flash）、reports/04_generation_mode_benchmark.md（速度-精度对比）
@@ -145,3 +172,8 @@ Completed（零样本标注 + 小批量 LoRA 训练验证完成，报告 06 落�
 - la_flash：batch≥4 才有收益（省显存），单行用 eager 调度器
 - 本机边界：5060 Ti（sm_120/16GB）仅 sdpa 短上下文；Magi/长上下文需 Hopper/Blackwell；flash-attn 必须用预编译 wheel（源码编译会 OOM 崩 WSL）
 - flash-attn 安装：pip install "flash-attn==2.8.3+cu.13.0.torch.2.9" --index-url https://wheels.astral.sh/simple/cu130/ --no-deps
+
+- 新阶段开发分支：feat/codex/yolo（自 feat/codex/lora@e6aab29 签出，已推送）
+- 代码格式化：black 26.5.1（root pyproject.toml，line-length 88）；Eagle/ 上游不动
+- 报告索引：reports/INDEX.md 为本项目报告唯一入口，新增报告必须登记
+- 数据集现状：detect 121 图 / 93 框（gas 58 / scooter 28 / bike 7），含 _frames/ 视频帧；outputs/annotation_detect/manifest.jsonl 为过期文件，需由修正后 txt 重建

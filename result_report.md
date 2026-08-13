@@ -24,6 +24,8 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - [2026-08-04] scripts 目录整理 + LoRA 训练启动/监控脚本交付：scripts/ 重组为 infer/bench/train/env/smoke 子目录（删除 .b64 残留、verify_*.py→.sh），新增 scripts/train/{train_lora.sh,train_watch.sh,ds_z1_torchadam.json,README.md} 与 scripts/README.md；train_lora.sh 端到端验证（1 步训练成功、断点续训检测、done.txt 提示），train_watch.sh 提供 tail/loss/gpu/tensorboard/checkpoints 监控
 - [2026-08-05] 真实小数据集验证里程碑：零样本标注管线（scripts/annotation/ 三脚本 + README）交付，C:\Data\datasets\detect 产出 122 份 YOLO txt（93 框，0 错误）；LoRA 小批量训练验证通过（78 伪标签样本，150 步 loss 1.19→0.41，holdout 8/8 类别一致 IoU 0.987，无灾难性遗忘）；定位 16GB 显存约束导致的 3 个问题（高帧样本丢弃 / model_max_length 烤死 / fast-hybrid 大图回归）并改进 launcher（MAX_SEQ 默认 1536、三重警告、model_max_length 自动恢复、--warmup）；报告 reports/06_zeroshot_annotation_and_lora_validation.md 落盘
 - [2026-08-05] 标准化检测评估交付：scripts/eval/eval_det.py（模型 vs YOLO GT，P/R/F1@IoU + F1@Mean + matched-IoU + 逐图明细，JSON+MD 报告），holdout 双模型评估跑通（F1@Mean=1.000 自洽口径，微调无回归）
+- [2026-08-13] 新专项基础设施就绪：black 26.5.1 规范化 scripts/ 全部 13 个 py（Eagle/ 上游不动）+ root pyproject.toml（line-length 88），提交 e6aab29 推送 feat/codex/lora；自其签出并推送新分支 feat/codex/yolo；建立报告索引机制 reports/INDEX.md（01-06 登记 + 07-10 占位），双 report 同步更新
+
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线
