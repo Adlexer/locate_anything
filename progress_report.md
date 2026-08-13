@@ -14,7 +14,7 @@
 
 ## Current Status
 
-Running（阶段一完成；阶段二进行中：真实标注反馈闭环 → YOLO 选型调研与训推框架 → 闭环工作流）
+Running（阶段二主体完成：反馈闭环 + YOLO 选型 + 训推框架 + 闭环设计已落盘；待人工复核首轮 holdout 与目标设备导出）
 
 ---
 
@@ -60,12 +60,17 @@ Running（阶段一完成；阶段二进行中：真实标注反馈闭环 → YO
 
 - [反馈闭环] 工具化闭环管线：make_corrected_dataset.py（修正策略+工作表）、yolo_txt_to_manifest.py（txt→manifest）、eval_feedback_loop.sh（双模型评估）；detect_v2 修正数据集（121 图/93 框，gas 58/scooter 35/bike 0）；run_v2 重训 + 真实 F1 评估落盘（reports/07）
 
+- [YOLO] yolo conda 环境（clone locate_anything_sft + ultralytics 8.4.118）；yolo_detect 数据集（train 113/val 8，与 LoRA holdout 对齐）；YOLO26s 微调 run_v1（200ep/6.4min/val mAP50=0.995/显存5.6GB）；infer/export CLI（ONNX 14s、TRT FP16 300s/4.1ms/帧）；框架文档 scripts/yolo/README.md
+- [闭环] cross_check.py（教师-YOLO 交叉校验→分歧工作表）+ skills/annotation-yolo-loop/SKILL.md 草案；报告 08/09/10 落盘
+
 ## In Progress
 
-- [完成] 真实标注反馈闭环（报告 07）：修正策略（bicycle→scooter 合并 + 降采样 ≤1280px）→ detect_v2 → run_v2 重训（150 步 / 1.62s/it）→ 双模型 eval（macro F1 预训练 1.000 / 微调 0.992，半自洽口径已说明）；工作表+可视化待用户视觉复核
-- [规划] YOLO 选型调研：双场景（训练工作站 / 嵌入式小算力推理导出）模型与框架评估
-- [规划] WSL 新建 yolo 专用 conda 环境 + YOLO 训推框架（训练/导出/本地推理验证）
-- [规划] 标注→训练→导出自动化闭环工作流（agent skill 化方案）
+- [完成] 真实标注反馈闭环（报告 07）：修正策略 → detect_v2 → run_v2 重训 → 双模型 eval；工作表+可视化待用户视觉复核
+- [完成] YOLO 选型调研（报告 08）：Ultralytics + YOLO26（n/s 边缘 / s/m 训练），双场景矩阵与风险
+- [完成] YOLO 训推框架（报告 09）：WSL yolo env（ultralytics 8.4.118）+ yolo_detect 数据集 + YOLO26s 微调（val mAP50/50-95=0.995）+ 推理/ONNX/TRT FP16 导出（4.1ms/帧）
+- [完成] 闭环工作流设计（报告 10）：教师-批评者-人工裁决-重训-导出；收敛准则；skill 草案 + cross_check.py 实现（教师-YOLO 一致率机制验证）
+- [待人工] 首轮 holdout 视觉复核（用户）：correction_worksheet.jsonl + yolo_viz_v2/montage.jpg；复核后建立真实基线指标
+- [规划] 目标设备导出（Jetson/RKNN/Hailo）+ INT8 精度回归；双卡 DDP 进阶
 
 ---
 
@@ -93,6 +98,12 @@ Running（阶段一完成；阶段二进行中：真实标注反馈闭环 → YO
 
 - [2026-08-13 13:3x] 反馈闭环执行：detect_v2 修正数据集（类合并+降采样）、manifest/JSONL 重建（78+8）、run_v2 重训（150 步 4:31）、eval 双模型对比（macro F1 1.000/0.992）
 - [2026-08-13 13:4x] 报告 07 落盘；INDEX.md 同步登记
+
+- [2026-08-13 14:0x] YOLO 选型调研落盘（报告 08：Ultralytics + YOLO26）
+- [2026-08-13 14:1x] WSL yolo env（ultralytics 8.4.118）+ yolo_detect 数据集构建
+- [2026-08-13 14:2x] YOLO26s 微调 run_v1：200ep/6.4min，val mAP50/50-95=0.995，显存5.6GB
+- [2026-08-13 14:3x] 推理验证（val 8/8 正确）+ 导出 ONNX/TRT FP16（4.1ms/帧）；报告 09 落盘
+- [2026-08-13 14:4x] 闭环工作流设计落盘（报告 10）+ cross_check.py 实现（教师-YOLO 一致率 1.000，YOLO 额外发现 1 框分歧）+ skill 草案
 
 ## User Requests
 

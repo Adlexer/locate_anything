@@ -14,9 +14,9 @@
 | 05 | [05_lora_sft_research.md](./05_lora_sft_research.md) | 2026-08-04 | LoRA/SFT 预研 | 16GB 单卡可行方案 = LoRA r64 + sdpa + seq≤2048 + DS ZeRO-1/2；全参 SFT 不可行 | done |
 | 06 | [06_zeroshot_annotation_and_lora_validation.md](./06_zeroshot_annotation_and_lora_validation.md) | 2026-08-05 | 零样本标注 + 小批量 LoRA 验证 | 122 txt / 93 框（gas 58/scooter 28/bike 7）；微调 holdout 8/8 一致、IoU 0.987（自洽口径，偏乐观） | done |
 | 07 | [07_real_annotation_feedback_loop.md](./07_real_annotation_feedback_loop.md) | 2026-08-13 | 真实标注反馈闭环 | 闭环管线端到端跑通：修正策略（bicycle→scooter 合并+降采样）→ detect_v2 → run_v2 重训 → 双模型 eval（macro F1 1.000/0.992，半自洽口径已说明）；工作表+可视化供人工复核 | done |
-| 08 | [08_yolo_selection_research.md](./08_yolo_selection_research.md) | 2026-08-13 | YOLO 选型调研（训练工作站 / 嵌入式小算力推理） | （待完成）双场景模型与框架评估 | pending |
-| 09 | [09_yolo_train_infer_framework.md](./09_yolo_train_infer_framework.md) | 2026-08-13 | YOLO 训推框架（WSL yolo env + 训练/导出/推理） | （待完成） | pending |
-| 10 | [10_closed_loop_pipeline.md](./10_closed_loop_pipeline.md) | 2026-08-13 | 标注→训练→导出闭环工作流（含 agent skill 化） | （待完成） | pending |
+| 08 | [08_yolo_selection_research.md](./08_yolo_selection_research.md) | 2026-08-13 | YOLO 选型调研（训练工作站 / 嵌入式小算力推理） | 选型结论：Ultralytics + YOLO26（n/s 边缘 / s/m 训练），双场景矩阵、TRT INT8 风险与落地计划 | done |
+| 09 | [09_yolo_train_infer_framework.md](./09_yolo_train_infer_framework.md) | 2026-08-13 | YOLO 训推框架（WSL yolo env + 训练/导出/推理） | yolo env + yolo_detect 数据集；YOLO26s 微调 val mAP50/50-95=0.995；TRT FP16 4.1ms/帧；框架脚本交付 | done |
+| 10 | [10_closed_loop_pipeline.md](./10_closed_loop_pipeline.md) | 2026-08-13 | 标注→训练→导出闭环工作流（含 agent skill 化） | 闭环设计落盘：教师-批评者-人工裁决-重训-导出；收敛准则（修正率<5%/一致率>95%）；skill 草案 + cross_check.py 已实现 | done |
 
 ## 维护规则
 

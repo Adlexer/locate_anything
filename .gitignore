@@ -34,3 +34,7 @@ Eagle/**/*.mp4
 Eagle/**/*.ttf
 Eagle/**/*.pt
 Eagle/**/*.bin
+# ---- YOLO / ultralytics local artifacts (weights/engines are redownloadable or under WSL) ----
+*.pt
+*.onnx
+*.engine

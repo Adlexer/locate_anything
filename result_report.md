@@ -28,6 +28,9 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 
 - [2026-08-13] 真实标注反馈闭环里程碑：闭环管线端到端跑通（修正策略 make_corrected_dataset.py：bicycle→scooter 合并 + ≤1280px 降采样 + 框质量过滤 → detect_v2；yolo_txt_to_manifest.py 逆向转换；eval_feedback_loop.sh 双模型评估）；LoRA run_v2 重训完成（150 步 / 4:31 / 1.62s/it，seq=1792 全覆盖无样本丢弃）；修正后 GT 上双模型 eval：预训练 macro F1@Mean 1.000、微调 0.992（gas 0.983），无灾难性遗忘；报告 07 落盘，半自洽口径与人工复核路径已说明
 
+- [2026-08-13] YOLO 训推框架里程碑：WSL `yolo` conda 环境（ultralytics 8.4.118）+ `yolo_detect` 数据集（train/val 与 LoRA holdout 对齐）；YOLO26s 微调 run_v1 完成（200ep ≈ 6.4min，峰值显存 ~5.6GB，val mAP50=0.995 / mAP50-95=0.995，gas P0.991/R1.0、scooter P0.912/R1.0）；本地推理验证 val 8/8 正确；导出 ONNX（14s）+ TensorRT FP16 engine（~300s，4.1ms/帧@640 ≈ 4.2× 加速）；框架脚本 scripts/yolo/ 交付
+- [2026-08-13] 闭环工作流设计里程碑：报告 08（YOLO 选型：Ultralytics + YOLO26 双场景矩阵）与报告 10（标注→训练→导出闭环 + 收敛准则 + skill 化方案）落盘；`scripts/loop/cross_check.py` 实现教师-YOLO 交叉校验（detect_v2 8 图一致率 1.000，YOLO 额外发现 1 框分歧样本）；skill 草案 skills/annotation-yolo-loop/SKILL.md 入库
+
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线
