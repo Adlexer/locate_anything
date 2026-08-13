@@ -26,6 +26,8 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - [2026-08-05] 标准化检测评估交付：scripts/eval/eval_det.py（模型 vs YOLO GT，P/R/F1@IoU + F1@Mean + matched-IoU + 逐图明细，JSON+MD 报告），holdout 双模型评估跑通（F1@Mean=1.000 自洽口径，微调无回归）
 - [2026-08-13] 新专项基础设施就绪：black 26.5.1 规范化 scripts/ 全部 13 个 py（Eagle/ 上游不动）+ root pyproject.toml（line-length 88），提交 e6aab29 推送 feat/codex/lora；自其签出并推送新分支 feat/codex/yolo；建立报告索引机制 reports/INDEX.md（01-06 登记 + 07-10 占位），双 report 同步更新
 
+- [2026-08-13] 真实标注反馈闭环里程碑：闭环管线端到端跑通（修正策略 make_corrected_dataset.py：bicycle→scooter 合并 + ≤1280px 降采样 + 框质量过滤 → detect_v2；yolo_txt_to_manifest.py 逆向转换；eval_feedback_loop.sh 双模型评估）；LoRA run_v2 重训完成（150 步 / 4:31 / 1.62s/it，seq=1792 全覆盖无样本丢弃）；修正后 GT 上双模型 eval：预训练 macro F1@Mean 1.000、微调 0.992（gas 0.983），无灾难性遗忘；报告 07 落盘，半自洽口径与人工复核路径已说明
+
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线

@@ -58,9 +58,11 @@ Running（阶段一完成；阶段二进行中：真实标注反馈闭环 → YO
 - [整理] 自 feat/codex/lora@e6aab29 签出新分支 feat/codex/yolo 并推送
 - [索引] 新增 reports/INDEX.md 索引机制（01-06 登记 + 07-10 占位），双 report 同步体现
 
+- [反馈闭环] 工具化闭环管线：make_corrected_dataset.py（修正策略+工作表）、yolo_txt_to_manifest.py（txt→manifest）、eval_feedback_loop.sh（双模型评估）；detect_v2 修正数据集（121 图/93 框，gas 58/scooter 35/bike 0）；run_v2 重训 + 真实 F1 评估落盘（reports/07）
+
 ## In Progress
 
-- [进行中] 真实标注反馈闭环：visualize 抽检 → 人工修正 YOLO txt → 重建 manifest/JSONL/recipe → LoRA run_v2 重训 → eval_det 真实 F1
+- [完成] 真实标注反馈闭环（报告 07）：修正策略（bicycle→scooter 合并 + 降采样 ≤1280px）→ detect_v2 → run_v2 重训（150 步 / 1.62s/it）→ 双模型 eval（macro F1 预训练 1.000 / 微调 0.992，半自洽口径已说明）；工作表+可视化待用户视觉复核
 - [规划] YOLO 选型调研：双场景（训练工作站 / 嵌入式小算力推理导出）模型与框架评估
 - [规划] WSL 新建 yolo 专用 conda 环境 + YOLO 训推框架（训练/导出/本地推理验证）
 - [规划] 标注→训练→导出自动化闭环工作流（agent skill 化方案）
@@ -88,6 +90,9 @@ Running（阶段一完成；阶段二进行中：真实标注反馈闭环 → YO
 - [ ] YOLO 选型调研落盘（报告 08）
 - [ ] WSL yolo conda 环境 + 训推框架（报告 09）
 - [ ] 标注→训练→导出闭环工作流（报告 10，含 skill 化）
+
+- [2026-08-13 13:3x] 反馈闭环执行：detect_v2 修正数据集（类合并+降采样）、manifest/JSONL 重建（78+8）、run_v2 重训（150 步 4:31）、eval 双模型对比（macro F1 1.000/0.992）
+- [2026-08-13 13:4x] 报告 07 落盘；INDEX.md 同步登记
 
 ## User Requests
 
