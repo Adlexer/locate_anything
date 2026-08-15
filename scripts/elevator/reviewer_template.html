@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>__TITLE__ — 人工视觉复核</title>
+<style>
+  body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; margin: 0; background: #1e1e2e; color: #eee; }
+  #top { display: flex; align-items: center; gap: 16px; padding: 8px 16px; background: #2a2a3e; position: sticky; top: 0; z-index: 5; }
+  #top h1 { font-size: 16px; margin: 0; }
+  #progress { font-size: 13px; color: #bbb; }
+  #wrap { display: flex; height: calc(100vh - 52px); }
+  #left { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: auto; }
+  #stage { position: relative; }
+  #img { max-width: calc(100vw - 420px); max-height: calc(100vh - 90px); display: block; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #right { width: 400px; overflow: auto; padding: 12px; background: #2a2a3e; }
+  #right h3 { margin: 4px 0; font-size: 14px; }
+  .box-row { display: flex; gap: 6px; align-items: center; padding: 4px 6px; margin: 4px 0; border: 1px solid #444; border-radius: 6px; font-size: 12px; background: #33334a; }
+  .box-row.decided-accept { border-color: #2ecc71; }
+  .box-row.decided-wrong_class { border-color: #e67e22; }
+  .box-row.decided-delete { border-color: #e74c3c; }
+  .tag { padding: 1px 6px; border-radius: 4px; font-size: 11px; }
+  .btn { border: 1px solid #555; background: #444; color: #eee; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 12px; }
+  .btn:hover { background: #555; }
+  .btn.active { background: #e67e22; border-color: #e67e22; }
+  .hint { font-size: 11px; color: #999; line-height: 1.6; }
+  #msg { font-size: 12px; color: #7fdbca; }
+  .cls-gas { color: #2ecc71; } .cls-electric { color: #3498db; } .cls-bicycle { color: #e74c3c; }
+</style>
+</head>
+<body>
+<div id="top">
+  <h1>__TITLE__</h1>
+  <span id="progress">—</span>
+  <span id="msg"></span>
+  <span class="hint" style="margin-left:auto">←/→ 切图 · 1保留 2类别错 3删除 4漏检(拖拽画框) · R重置 · D下载裁决</span>
+</div>
+<div id="wrap">
+  <div id="left">
+    <div id="stage"><img id="img" alt=""><canvas id="cv"></canvas></div>
+  </div>
+  <div id="right">
+    <h3>图片 <span id="imgname"></span></h3>
+    <div id="yolobox"></div>
+    <h3>教师框（点击或按数字键裁决）</h3>
+    <div id="boxes"></div>
+    <h3>漏检框（4 模式拖拽添加）</h3>
+    <div id="misslist"></div>
+    <button class="btn" onclick="resetImage()">重置本图 (R)</button>
+    <button class="btn" onclick="downloadDecisions()">下载裁决 JSON (D)</button>
+  </div>
+</div>
+<script>
+const DATA = __PAYLOAD__;
+const CLASS_COLOR = {};
+DATA.classes.forEach((c, i) => { CLASS_COLOR[c] = ["#2ecc71", "#3498db", "#e74c3c", "#e67e22", "#9b59b6", "#1abc9c"][i % 6]; });
+let idx = 0, decisions = {}, missing = [], missingMode = false, drag = null;
+const img = document.getElementById("img"), cv = document.getElementById("cv"), ctx = cv.getContext("2d");
+function cur() { return DATA.images[idx]; }
+function boxOf(id) { for (const im of DATA.images) for (const b of im.boxes) if (b.id === id) return {im, b}; return null; }
+function render() {
+  const im = cur();
+  img.onload = draw;
+  img.src = im.src;
+  document.getElementById("imgname").textContent = im.image;
+  const decided = Object.keys(decisions).length, total = DATA.images.reduce((s, x) => s + x.boxes.length, 0);
+  document.getElementById("progress").textContent = `图 ${idx + 1}/${DATA.images.length} · 已裁决 ${decided}/${total} 框 · 漏检 ${missing.length}`;
+  const yb = document.getElementById("yolobox");
+  yb.innerHTML = "<h3>YOLO 框（虚线）</h3>" + (im.yolo_boxes.length ? im.yolo_boxes.map(y => `<div class="box-row"><span class="tag" style="background:#555">${y.class}</span> conf ${y.conf}</div>`).join("") : "<span class='hint'>无</span>");
+  const bb = document.getElementById("boxes");
+  bb.innerHTML = im.boxes.map(b => {
+    const d = decisions[b.id];
+    const verdict = b.yolo_verdict ? `<span class="tag" style="background:#555">${b.yolo_verdict}</span>` : "";
+    return `<div class="box-row ${d ? 'decided-' + d : ''}" data-id="${b.id}">
+      <span class="tag cls-${b.class.split(' ')[0].toLowerCase()}" style="background:#444;color:${CLASS_COLOR[b.class]}">${b.class}</span>
+      <span class="tag" style="background:#333">#${b.id}</span> ${verdict}
+      <span style="margin-left:auto">
+        <button class="btn" onclick="setDecision(${b.id},'accept')">保留</button>
+        <button class="btn" onclick="setDecision(${b.id},'wrong_class')">类错</button>
+        <button class="btn" onclick="setDecision(${b.id},'delete')">删除</button>
+      </span></div>`;
+  }).join("") || "<span class='hint'>无教师框</span>";
+  const ml = document.getElementById("misslist");
+  ml.innerHTML = im.boxes.length ? "" : (missing.filter(m => m.image === im.image).map((m, i) => `<div class="box-row"><span>待补框 #${i + 1}</span><button class="btn" onclick="delMissing(${i})">删</button></div>`).join("")) ;
+  draw();
+}
+function draw() {
+  const im = cur(), W = img.naturalWidth, H = img.naturalHeight;
+  if (!W) return;
+  cv.width = img.clientWidth; cv.height = img.clientHeight;
+  const sx = cv.width / W, sy = cv.height / H;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  for (const y of im.yolo_boxes) { ctx.setLineDash([6, 4]); ctx.strokeStyle = "#f39c12"; ctx.lineWidth = 2; const [x1, y1, x2, y2] = y.xyxy; ctx.strokeRect(x1 * sx, y1 * sy, (x2 - x1) * sx, (y2 - y1) * sy); ctx.setLineDash([]); }
+  for (const b of im.boxes) {
+    const d = decisions[b.id];
+    ctx.strokeStyle = d === "delete" ? "#666" : CLASS_COLOR[b.class];
+    ctx.fillStyle = ctx.strokeStyle; ctx.lineWidth = 3;
+    const [x1, y1, x2, y2] = b.xyxy;
+    ctx.strokeRect(x1 * sx, y1 * sy, (x2 - x1) * sx, (y2 - y1) * sy);
+    ctx.font = "15px sans-serif";
+    ctx.fillText(`#${b.id} ${b.class}${d ? "[" + d + "]" : ""}`, x1 * sx, Math.max(16, y1 * sy - 6));
+  }
+  for (const m of missing.filter(x => x.image === im.image)) {
+    ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 3; ctx.setLineDash([8, 4]);
+    const [x1, y1, x2, y2] = [m.x1 * sx, m.y1 * sy, m.x2 * sx, m.y2 * sy];
+    ctx.strokeRect(x1, y1, x2 - x1, y2 - y1); ctx.setLineDash([]);
+  }
+  if (drag) { ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 2; ctx.strokeRect(drag.x0, drag.y0, drag.x1 - drag.x0, drag.y1 - drag.y0); }
+}
+function setDecision(id, d) { decisions[id] = d; render(); }
+function resetImage() { const im = cur(); im.boxes.forEach(b => delete decisions[b.id]); missing = missing.filter(m => m.image !== im.image); render(); }
+function delMissing(i) { const im = cur().image; const arr = missing.filter(m => m.image === im); if (arr[i]) missing.splice(missing.indexOf(arr[i]), 1); render(); }
+function downloadDecisions() {
+  const payload = { decisions, missing, reviewed_images: DATA.images.length, boxes_total: DATA.images.reduce((s, x) => s + x.boxes.length, 0) };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "elevator_review_decisions.json"; a.click();
+}
+document.addEventListener("keydown", e => {
+  const k = e.key;
+  if (k === "ArrowRight" || k === " ") { e.preventDefault(); idx = (idx + 1) % DATA.images.length; render(); }
+  else if (k === "ArrowLeft") { e.preventDefault(); idx = (idx - 1 + DATA.images.length) % DATA.images.length; render(); }
+  else if (k === "r" || k === "R") resetImage();
+  else if (k === "d" || k === "D") downloadDecisions();
+  else if (k === "4") { missingMode = !missingMode; document.getElementById("msg").textContent = missingMode ? "漏检模式：在图上拖拽添加待补框" : ""; }
+  else if (["1", "2", "3"].includes(k)) {
+    const im = cur(); const und = im.boxes.find(b => !decisions[b.id]);
+    if (und) setDecision(und.id, { 1: "accept", 2: "wrong_class", 3: "delete" }[k]);
+  }
+});
+cv.addEventListener("mousedown", e => { if (!missingMode) return; const r = cv.getBoundingClientRect(); const x = e.clientX - r.left, y = e.clientY - r.top; drag = { x0: x, y0: y, x1: x, y1: y }; });
+cv.addEventListener("mousemove", e => { if (drag) { const r = cv.getBoundingClientRect(); drag.x1 = e.clientX - r.left; drag.y1 = e.clientY - r.top; draw(); } });
+cv.addEventListener("mouseup", e => {
+  if (!drag) return;
+  const r = cv.getBoundingClientRect(), W = img.naturalWidth, H = img.naturalHeight;
+  const sx = W / cv.width, sy = H / cv.height;
+  let x1 = Math.min(drag.x0, drag.x1) * sx / W, x2 = Math.max(drag.x0, drag.x1) * sx / W;
+  let y1 = Math.min(drag.y0, drag.y1) * sy / H, y2 = Math.max(drag.y0, drag.y1) * sy / H;
+  x1 = Math.max(0, Math.min(1, x1)); x2 = Math.max(0, Math.min(1, x2)); y1 = Math.max(0, Math.min(1, y1)); y2 = Math.max(0, Math.min(1, y2));
+  if (x2 - x1 > 0.005 && y2 - y1 > 0.005) missing.push({ image: cur().image, x1, y1, x2, y2 });
+  drag = null; render();
+});
+render();
+</script>
+</body>
+</html>

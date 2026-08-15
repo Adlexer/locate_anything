@@ -14,7 +14,7 @@
 
 ## Current Status
 
-Running（阶段二主体完成：反馈闭环 + YOLO 选型 + 训推框架 + 闭环设计已落盘；待人工复核首轮 holdout 与目标设备导出）
+Running（阶段三：电梯场景泛化验证。编排与工具已落地，教师标注 + YOLO 交叉校验完成；**待用户执行人工视觉复核**（reviewer.html）后回灌出真实跨域 F1）
 
 ---
 
@@ -63,13 +63,16 @@ Running（阶段二主体完成：反馈闭环 + YOLO 选型 + 训推框架 + �
 - [YOLO] yolo conda 环境（clone locate_anything_sft + ultralytics 8.4.118）；yolo_detect 数据集（train 113/val 8，与 LoRA holdout 对齐）；YOLO26s 微调 run_v1（200ep/6.4min/val mAP50=0.995/显存5.6GB）；infer/export CLI（ONNX 14s、TRT FP16 300s/4.1ms/帧）；框架文档 scripts/yolo/README.md
 - [闭环] cross_check.py（教师-YOLO 交叉校验→分歧工作表）+ skills/annotation-yolo-loop/SKILL.md 草案；报告 08/09/10 落盘
 
+- [电梯] 编排工具化（scripts/elevator/）：sample_dataset.py（分层采样150图）、run_annotate_elevator.sh（教师零样本163框）、run_crosscheck_elevator.sh（YOLO交叉校验）、analyze_agreement.py（best-IoU分析）、make_review_artifacts.py + reviewer_template.html（复核工件）；数据审计（LBD 标注失配）；教师-YOLO 跨域一致率 9.8%；报告 11 落盘
+
 ## In Progress
 
 - [完成] 真实标注反馈闭环（报告 07）：修正策略 → detect_v2 → run_v2 重训 → 双模型 eval；工作表+可视化待用户视觉复核
 - [完成] YOLO 选型调研（报告 08）：Ultralytics + YOLO26（n/s 边缘 / s/m 训练），双场景矩阵与风险
 - [完成] YOLO 训推框架（报告 09）：WSL yolo env（ultralytics 8.4.118）+ yolo_detect 数据集 + YOLO26s 微调（val mAP50/50-95=0.995）+ 推理/ONNX/TRT FP16 导出（4.1ms/帧）
 - [完成] 闭环工作流设计（报告 10）：教师-批评者-人工裁决-重训-导出；收敛准则；skill 草案 + cross_check.py 实现（教师-YOLO 一致率机制验证）
-- [待人工] 首轮 holdout 视觉复核（用户）：correction_worksheet.jsonl + yolo_viz_v2/montage.jpg；复核后建立真实基线指标
+- [进行中·待用户] 电梯场景人工视觉复核（150 图）：outputs/elevator_review/reviewer.html + 工作表；复核后回灌 → 真实跨域 F1 + 电梯场景 YOLO 训练
+- [待确认] 已标注/ 下 2408 份 LBD_B_2411_* 人工 txt 与图片失配（无同名图）——若找回原图/映射可直接做人工 GT 评估
 - [规划] 目标设备导出（Jetson/RKNN/Hailo）+ INT8 精度回归；双卡 DDP 进阶
 
 ---
@@ -105,6 +108,8 @@ Running（阶段二主体完成：反馈闭环 + YOLO 选型 + 训推框架 + �
 - [2026-08-13 14:3x] 推理验证（val 8/8 正确）+ 导出 ONNX/TRT FP16（4.1ms/帧）；报告 09 落盘
 - [2026-08-13 14:4x] 闭环工作流设计落盘（报告 10）+ cross_check.py 实现（教师-YOLO 一致率 1.000，YOLO 额外发现 1 框分歧）+ skill 草案
 
+- [2026-08-16 15:0x] 我这边有一个大型原始采集数据集已经落盘到C:\Data\datasets\elevator_yolo_detect，可以验证泛化结论+人工视觉复核项。由你来设计具体的任务编排，包括给我的人工视觉复核任务，并且尽量工具化可视化。
+
 ## User Requests
 
 - [2026-08-04 15:16] 探查C:\Dev\locate_anything\Eagle\Embodied：locate anything源码。权重已经落盘本地：C:\Data\LocateAnything-3B
@@ -125,6 +130,12 @@ Running（阶段二主体完成：反馈闭环 + YOLO 选型 + 训推框架 + �
   2.YOLO在历史上已经迭代了相当多的版本，在训推任务开始之前我希望先做足选型和调研工作，评估两种使用场景：训练是AI工作站（RTX5060Ti，甚至双卡），导出和推理是嵌入式设备/摄像头/无人机等小TOPS算力设备。当前实验阶段可以允许推理在本地验证。
   3.当YOLO完成训推框架的建立之后，探索某种和标注流水线一起闭环的工作流，形成标注->训练->导出的自动化流水线，你也可以以skill的方式建立在agent上的自动化。具体方案由你调研决定。
   4.具体项目细节注意：开发环境对标之前任务，在wsl上新建yolo专用conda环境以隔离依赖；注意维持报告落盘格式，并且要补充建立相应的索引机制：./reports/INDEX.md，双report中也要有所体现；任务开始之前对当前代码分支未提交上库部分做整理收尾上库，使用formatter对python代码进行自动规范化；新任务代码提交到新分支：feat/codex/yolo，由当前分支签出。
+
+- [2026-08-16 15:0x] 用户提供大型原始数据集 C:\Data\datasets\elevator_yolo_detect，要求设计编排 + 人工视觉复核任务并工具化可视化
+- [2026-08-16 15:1x] 数据审计：~2.5万图 + 2408 人工 txt（LBD_B_2411_*，全 class 0），发现标注与图片失配
+- [2026-08-16 15:2x] 建分支 feat/codex/elevator；采样 150 图（5 组×30，seed42，≤1280px）；教师零样本标注 163 框（gas60/scooter60/bike43）
+- [2026-08-16 15:3x] YOLO26s 批评者交叉校验：一致率 9.8%（73% 教师框 best-IoU<0.2，YOLO 无 bicycle）；1280 复测 4.9%
+- [2026-08-16 15:4x] 复核工件生成：reviewer.html（交互式快捷键裁决）+ review_worksheet.{csv,md} + montage；报告 11 落盘；模型路径迁移 ~/data/ 已确认
 
 ## Timeline
 
@@ -193,3 +204,5 @@ Running（阶段二主体完成：反馈闭环 + YOLO 选型 + 训推框架 + �
 - 代码格式化：black 26.5.1（root pyproject.toml，line-length 88）；Eagle/ 上游不动
 - 报告索引：reports/INDEX.md 为本项目报告唯一入口，新增报告必须登记
 - 数据集现状：detect 121 图 / 93 框（gas 58 / scooter 28 / bike 7），含 _frames/ 视频帧；outputs/annotation_detect/manifest.jsonl 为过期文件，需由修正后 txt 重建
+
+- [2026-08-16] WSL 模型/产物已迁移：~/models → ~/data/models/LocateAnything-3B；~/lora_gas → ~/data/lora_gas；~/yolo_runs → ~/data/yolo_runs（脚本默认路径需同步）

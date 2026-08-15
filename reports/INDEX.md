@@ -23,3 +23,4 @@
 - 编号按时间顺序递增；文件名 `NN_<slug>.md`
 - 每份报告落盘时在此新增/更新一行，并同步更新双 report（progress_report.md / result_report.md）
 - 一句话结论保持一行，突出可验证的产出或结论
+| 11 | [11_elevator_generalization_review.md](./11_elevator_generalization_review.md) | 2026-08-16 | 电梯场景泛化验证 + 人工视觉复核编排 | 编排工具化：采样150图→教师标注163框→YOLO交叉校验（一致率9.8%）→复核工件（reviewer.html/工作表/拼图）；审计发现LBD人工标注与图片失配 | done |

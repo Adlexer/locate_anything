@@ -31,6 +31,8 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 - [2026-08-13] YOLO 训推框架里程碑：WSL `yolo` conda 环境（ultralytics 8.4.118）+ `yolo_detect` 数据集（train/val 与 LoRA holdout 对齐）；YOLO26s 微调 run_v1 完成（200ep ≈ 6.4min，峰值显存 ~5.6GB，val mAP50=0.995 / mAP50-95=0.995，gas P0.991/R1.0、scooter P0.912/R1.0）；本地推理验证 val 8/8 正确；导出 ONNX（14s）+ TensorRT FP16 engine（~300s，4.1ms/帧@640 ≈ 4.2× 加速）；框架脚本 scripts/yolo/ 交付
 - [2026-08-13] 闭环工作流设计里程碑：报告 08（YOLO 选型：Ultralytics + YOLO26 双场景矩阵）与报告 10（标注→训练→导出闭环 + 收敛准则 + skill 化方案）落盘；`scripts/loop/cross_check.py` 实现教师-YOLO 交叉校验（detect_v2 8 图一致率 1.000，YOLO 额外发现 1 框分歧样本）；skill 草案 skills/annotation-yolo-loop/SKILL.md 入库
 
+- [2026-08-16] 电梯场景泛化验证编排里程碑：新增 scripts/elevator/ 全套工具（采样/标注 runner/交叉校验/一致率分析/复核工件生成 + 交互式 HTML 复核器）；完成 150 图采样与教师零样本标注（163 框）；YOLO26s 交叉校验揭示跨域一致率仅 9.8%（73% 教师框 best-IoU<0.2，YOLO 不输出 bicycle）；审计发现 LBD_B_2411_* 人工标注与图片失配；复核工件（reviewer.html/工作表/拼图）已交付，报告 11 落盘
+
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线
