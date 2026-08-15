@@ -38,3 +38,6 @@ Eagle/**/*.bin
 *.pt
 *.onnx
 *.engine
+
+# ---- ultralytics generated val/train runs ----
+runs/
