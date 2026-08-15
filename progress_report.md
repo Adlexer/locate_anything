@@ -112,6 +112,8 @@ Running（阶段三：电梯场景泛化验证。编排与工具已落地，教�
 
 - [2026-08-16 16:0x] 修复复核器无图：file:// 直开被浏览器拦截 → 改为本地 HTTP（start_review_server.bat）+ 相对路径 + 图片随工件复制；已在应用内浏览器验证 150 图加载与翻页/框渲染
 
+- [2026-08-16 16:2x] 修复复核器框渲染 bug：根因=归一化坐标误乘 sx(=canvas/natural) 而非 canvas 宽高，导致框被压缩到左上角；改为乘以 cv.width/cv.height（教师框/YOLO 框/漏检框/调试期望全部修正），已用 debuginfo 验证单框/多框绘制位置正确
+
 ## User Requests
 
 - [2026-08-04 15:16] 探查C:\Dev\locate_anything\Eagle\Embodied：locate anything源码。权重已经落盘本地：C:\Data\LocateAnything-3B

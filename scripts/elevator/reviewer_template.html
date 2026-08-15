@@ -37,7 +37,7 @@
 </div>
 <div id="wrap">
   <div id="left">
-    <div id="stage"><img id="img" alt=""><canvas id="cv"></canvas></div>
+    <div id="stage"><img id="img" alt=""><canvas id="cv"></canvas></div><div id="debuginfo" hidden></div>
   </div>
   <div id="right">
     <h3>图片 <span id="imgname"></span></h3>
@@ -92,22 +92,29 @@ function draw() {
   cv.width = img.clientWidth; cv.height = img.clientHeight;
   const sx = cv.width / W, sy = cv.height / H;
   ctx.clearRect(0, 0, cv.width, cv.height);
-  for (const y of im.yolo_boxes) { ctx.setLineDash([6, 4]); ctx.strokeStyle = "#f39c12"; ctx.lineWidth = 2; const [x1, y1, x2, y2] = y.xyxy; ctx.strokeRect(x1 * sx, y1 * sy, (x2 - x1) * sx, (y2 - y1) * sy); ctx.setLineDash([]); }
+  for (const y of im.yolo_boxes) { ctx.setLineDash([6, 4]); ctx.strokeStyle = "#f39c12"; ctx.lineWidth = 2; const [x1, y1, x2, y2] = y.xyxy; ctx.strokeRect(x1 * cv.width, y1 * cv.height, (x2 - x1) * cv.width, (y2 - y1) * cv.height); ctx.setLineDash([]); }
   for (const b of im.boxes) {
     const d = decisions[b.id];
     ctx.strokeStyle = d === "delete" ? "#666" : CLASS_COLOR[b.class];
     ctx.fillStyle = ctx.strokeStyle; ctx.lineWidth = 3;
     const [x1, y1, x2, y2] = b.xyxy;
-    ctx.strokeRect(x1 * sx, y1 * sy, (x2 - x1) * sx, (y2 - y1) * sy);
+    ctx.strokeRect(x1 * cv.width, y1 * cv.height, (x2 - x1) * cv.width, (y2 - y1) * cv.height);
     ctx.font = "15px sans-serif";
-    ctx.fillText(`#${b.id} ${b.class}${d ? "[" + d + "]" : ""}`, x1 * sx, Math.max(16, y1 * sy - 6));
+    ctx.fillText(`#${b.id} ${b.class}${d ? "[" + d + "]" : ""}`, x1 * cv.width, Math.max(16, y1 * cv.height - 6));
   }
   for (const m of missing.filter(x => x.image === im.image)) {
     ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 3; ctx.setLineDash([8, 4]);
-    const [x1, y1, x2, y2] = [m.x1 * sx, m.y1 * sy, m.x2 * sx, m.y2 * sy];
+    const [x1, y1, x2, y2] = [m.x1 * cv.width, m.y1 * cv.height, m.x2 * cv.width, m.y2 * cv.height];
     ctx.strokeRect(x1, y1, x2 - x1, y2 - y1); ctx.setLineDash([]);
   }
   if (drag) { ctx.strokeStyle = "#e74c3c"; ctx.lineWidth = 2; ctx.strokeRect(drag.x0, drag.y0, drag.x1 - drag.x0, drag.y1 - drag.y0); }
+  try {
+    const d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+    let minX = cv.width, minY = cv.height, maxX = 0, maxY = 0, n = 0;
+    for (let y = 0; y < cv.height; y++) { for (let x = 0; x < cv.width; x++) { if (d[(y * cv.width + x) * 4 + 3] > 0) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; n++; } } }
+    const expected = im.boxes.map(b => ({ id: b.id, xyxy: b.xyxy, rect: [b.xyxy[0] * cv.width, b.xyxy[1] * cv.height, b.xyxy[2] * cv.width, b.xyxy[3] * cv.height] }));
+    document.getElementById("debuginfo").textContent = JSON.stringify({ natural: [W, H], client: [img.clientWidth, img.clientHeight], canvas: [cv.width, cv.height], scale: [sx, sy], expected, drawnBBox: n ? [minX, minY, maxX, maxY] : null, drawnN: n });
+  } catch (e) { document.getElementById("debuginfo").textContent = "ERR:" + e.message; }
 }
 function setDecision(id, d) { decisions[id] = d; render(); }
 function resetImage() { const im = cur(); im.boxes.forEach(b => delete decisions[b.id]); missing = missing.filter(m => m.image !== im.image); render(); }
