@@ -18,6 +18,7 @@ Usage (any python):
 import argparse
 import csv
 import json
+import shutil
 from pathlib import Path
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
@@ -127,14 +128,13 @@ def main():
                     "yolo_verdict": verdict or "",
                 }
             )
-        abs_img = (data / rel).resolve()
-        _src = str(abs_img).replace("\\\\", "/")
-        if _src.startswith("/mnt/"):
-            _src = _src[5].upper() + ":" + _src[6:]
+        img_out = out / "images" / rel.replace("/", "_")
+        img_out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2((data / rel).resolve(), img_out)
         payload.append(
             {
                 "image": rel,
-                "src": "file:///" + _src,
+                "src": "images/" + rel.replace("/", "_"),
                 "boxes": box_meta,
                 "yolo_boxes": [
                     {

@@ -52,6 +52,8 @@
 </div>
 <script>
 const DATA = __PAYLOAD__;
+window.DATA = DATA; // debug hook
+window.__jump = (i) => { if (i >= 0 && i < DATA.images.length) { idx = i; render(); } };
 const CLASS_COLOR = {};
 DATA.classes.forEach((c, i) => { CLASS_COLOR[c] = ["#2ecc71", "#3498db", "#e74c3c", "#e67e22", "#9b59b6", "#1abc9c"][i % 6]; });
 let idx = 0, decisions = {}, missing = [], missingMode = false, drag = null;

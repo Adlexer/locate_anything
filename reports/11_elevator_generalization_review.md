@@ -85,8 +85,10 @@
 
 ## 5. 人工视觉复核任务（你的任务）
 
-### 5.1 打开方式
-- 双击打开：`C:\Dev\locate_anything\outputs\elevator_review\reviewer.html`（Chrome/Edge，无需联网）
+### 5.1 打开方式（必须走本地 HTTP，勿直接双击 html）
+- 推荐：双击 `C:\Dev\locate_anything\scripts\elevator\start_review_server.bat`（自动起服务 + 开浏览器 http://127.0.0.1:8765/reviewer.html）
+- 或手动：`python -m http.server 8765 --bind 127.0.0.1 --directory C:\Dev\locate_anything\outputs\elevator_review` 后访问 http://127.0.0.1:8765/reviewer.html
+- 原因：file:// 直开会被浏览器拦截本地图片（无图），已改为本地 HTTP + 相对路径（已验证 150 图加载正常）
 - 总览拼图（教师框标注）：`C:\Dev\locate_anything\outputs\elevator_viz\montage.jpg`
 - 工作表：`outputs\elevator_review\review_worksheet.csv` / `.md`
 

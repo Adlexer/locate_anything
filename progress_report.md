@@ -110,6 +110,8 @@ Running（阶段三：电梯场景泛化验证。编排与工具已落地，教�
 
 - [2026-08-16 15:0x] 我这边有一个大型原始采集数据集已经落盘到C:\Data\datasets\elevator_yolo_detect，可以验证泛化结论+人工视觉复核项。由你来设计具体的任务编排，包括给我的人工视觉复核任务，并且尽量工具化可视化。
 
+- [2026-08-16 16:0x] 修复复核器无图：file:// 直开被浏览器拦截 → 改为本地 HTTP（start_review_server.bat）+ 相对路径 + 图片随工件复制；已在应用内浏览器验证 150 图加载与翻页/框渲染
+
 ## User Requests
 
 - [2026-08-04 15:16] 探查C:\Dev\locate_anything\Eagle\Embodied：locate anything源码。权重已经落盘本地：C:\Data\LocateAnything-3B
