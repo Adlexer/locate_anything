@@ -25,3 +25,4 @@
 - 一句话结论保持一行，突出可验证的产出或结论
 | 11 | [11_elevator_generalization_review.md](./11_elevator_generalization_review.md) | 2026-08-16 | 电梯场景泛化验证 + 人工视觉复核编排 | 编排工具化：采样150图→教师标注163框→YOLO交叉校验（一致率9.8%）→复核工件（reviewer.html/工作表/拼图）；审计发现LBD人工标注与图片失配 | done |
 | 12 | [12_twowheeler_cross_annotation_loop.md](./12_twowheeler_cross_annotation_loop.md) | 2026-08-16 | 两轮车交叉标注与审核训练闭环（方向调整重启） | 收敛为 2 类（电动车/单车）；教师 124 框（64/60）；YOLO 交叉一致率 5.6%（bicycle 全未确认）；复核工件 + 伪标签基线 tw_run_v1（mAP50 0.43）就绪 | done |
+| 13 | [13_review_loop_round1.md](./13_review_loop_round1.md) | 2026-08-16 | 两轮车闭环第一轮：人工复核回灌 → 真实指标 → 重训对比 | 复核 124 框（accept77/delete43/wrong4）；真实指标 教师 F1 0.751、YOLO批评者 F1 0.086；3 特殊情况量化（YOLO碎片71→58、教师双类、电瓶空图49张）；v1 vs v2 公平对比 mAP50 0.757/0.504（数据量不足，v2 best@epoch1） | done |

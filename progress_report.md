@@ -14,7 +14,7 @@
 
 ## Current Status
 
-Running（阶段四：两轮车交叉标注与审核训练闭环（方向调整重启）。2 类域（电动车/单车）教师标注 + YOLO 交叉校验 + 复核工件 + 伪标签基线训练完成；**待用户复核 120 两轮车图**后回灌重训）
+Running（阶段四·闭环第一轮完成：人工复核已回灌 → 真实指标（教师 F1 0.751 / YOLO批评者 0.086）+ 重训对比（v1 0.757 vs v2 0.504，数据量不足）落盘；**下一步=扩充两轮车数据（剔除 battery）+ 调训练**）
 
 ---
 
@@ -67,13 +67,16 @@ Running（阶段四：两轮车交叉标注与审核训练闭环（方向调整�
 
 - [两轮车闭环] 方向调整重启（报告 12）：2 类域（electric scooter/bicycle）；elevator_sample_tw 120 图；教师 124 框（64/60）；cross_check/analyze 修复 model.names 映射；YOLO 交叉一致率 5.6%（bicycle 0/60 未确认）；复核工件（YOLO 煤气罐已过滤）；伪标签基线 tw_run_v1（val mAP50 0.43 / mAP50-95 0.279）
 
+- [闭环第一轮] 人工复核回灌完成（报告 13）：124 框裁决 accept77/delete43/wrong4；人工 GT 81 框；真实指标（教师 P0.621/R0.951/F1 0.751；YOLO批评者 F1 0.086）；3 特殊情况量化（YOLO碎片 71→58、教师同目标双类、电瓶空图 49 张）；v2 人工GT训练 vs v1 伪标签 公平对比 mAP50 0.504/0.757（数据量不足结论）
+
 ## In Progress
 
 - [完成] 真实标注反馈闭环（报告 07）：修正策略 → detect_v2 → run_v2 重训 → 双模型 eval；工作表+可视化待用户视觉复核
 - [完成] YOLO 选型调研（报告 08）：Ultralytics + YOLO26（n/s 边缘 / s/m 训练），双场景矩阵与风险
 - [完成] YOLO 训推框架（报告 09）：WSL yolo env（ultralytics 8.4.118）+ yolo_detect 数据集 + YOLO26s 微调（val mAP50/50-95=0.995）+ 推理/ONNX/TRT FP16 导出（4.1ms/帧）
 - [完成] 闭环工作流设计（报告 10）：教师-批评者-人工裁决-重训-导出；收敛准则；skill 草案 + cross_check.py 实现（教师-YOLO 一致率机制验证）
-- [进行中·待用户] 两轮车人工复核（120 图）：outputs/elevator_review_tw/reviewer.html（http://127.0.0.1:8766）；复核重点=bicycle 60 框类别真伪 + teacher_only 112；回灌 → 2 类人工 GT → tw_run_v2 重训对比
+- [规划] 扩数据重训 tw_run_v3：剔除 battery 组，wave2_ebike+ebike_like 全量分层采样（~1.7万图）；调训练（更长 epochs/更低 LR/freeze 骨干，避免 best@epoch1）
+- [规划] 管线改进：annotate_yolo.py 加同目标跨类冲突标记；cross_check.py 加同类碎片合并；用教师修正率(34.7%)+人工GT上YOLO mAP 作闭环收敛指标
 - [待确认] 已标注/ 下 2408 份 LBD_B_2411_* 人工 txt 与图片失配（无同名图）——若找回原图/映射可直接做人工 GT 评估
 - [规划] 目标设备导出（Jetson/RKNN/Hailo）+ INT8 精度回归；双卡 DDP 进阶
 
@@ -149,6 +152,11 @@ Running（阶段四：两轮车交叉标注与审核训练闭环（方向调整�
 - [2026-08-16 17:1x] 修复 cross_check/analyze_agreement 的 YOLO 类别映射（model.names）；建 elevator_sample_tw（120 图，2 类）；教师 2 类标注 124 框（scooter 64/bicycle 60）
 - [2026-08-16 17:2x] YOLO 交叉校验：一致率 5.6%（bicycle 60 全 teacher_only）；复核工件生成（YOLO gas 过滤）；两轮车 YOLO 数据集 yolo_detect_tw（108+12）
 - [2026-08-16 17:3x] 伪标签基线 tw_run_v1 训练完成（early-stop@96，val mAP50 0.43）；报告 12 落盘
+
+- [2026-08-16 18:0x] 用户完成人工复核并落盘 decisions.json；裁决 accept77/delete43/wrong4；应用得人工 GT 81 框 + 49 空图（battery 组噪声）
+- [2026-08-16 18:1x] 真实指标（eval_review.py）：教师 F1 0.751、YOLO 批评者 F1 0.086；YOLO 碎片合并 71→58
+- [2026-08-16 18:2x] v2 人工 GT 训练 tw_run_v2（best@epoch1，mAP50 0.504）；与 v1 公平对比 0.757 vs 0.504 → 数据量不足，需扩数据
+- [2026-08-16 18:3x] 报告 13 落盘；apply_review/eval_review/build_tw_dataset(负样本) 工具化
 
 ## Timeline
 

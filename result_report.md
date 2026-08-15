@@ -35,6 +35,8 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 
 - [2026-08-16] 两轮车闭环方向调整里程碑（报告 12）：类别域收敛 2 类（electric scooter / bicycle），排除煤气罐；两轮车子集 elevator_sample_tw（120 图）；教师 2 类零样本标注 124 框（scooter 64 / bicycle 60）；修复 cross_check/analyze 的 YOLO 类别映射（model.names，防 2 类错位）；教师-YOLO 交叉一致率 5.6%（bicycle 0/60 未确认）；复核工件（reviewer.html 120 图 + 工作表，YOLO 煤气罐框过滤）；教师伪标签 YOLO26s 基线 tw_run_v1 完成（early-stop@96，val mAP50 0.43 / mAP50-95 0.279，R 0.354 弱基线待人工复核修正）
 
+- [2026-08-16] 两轮车闭环第一轮里程碑（报告 13）：人工复核回灌完成（124 框 accept77/delete43/wrong4 → 人工 GT 81 框）；真实指标落盘——教师 F1 0.751（R 0.951）、YOLO 批评者 F1 0.086（跨域不可用，证实泛化结论）；3 特殊情况量化处理（YOLO 碎片合并 71→58、教师同目标双类别由人工去重、电瓶空图 49 张作背景负样本）；v1/v2 公平对比（mAP50 0.757/0.504）得出"数据量不足、v2 best@epoch1"的诚实结论；新增 apply_review/eval_review 工具
+
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线
