@@ -28,7 +28,7 @@ def _to_rgb(img):
     return img.convert("RGB") if img.mode in ("RGBA", "LA", "P") else img
 
 
-def sample_group(data, rel_dir, n, rng):
+def sample_group(data, rel_dir, n, rng, exclude=None):
     base = data / rel_dir
     if not base.exists():
         raise SystemExit(f"[sample] group dir not found: {base}")
@@ -39,6 +39,11 @@ def sample_group(data, rel_dir, n, rng):
     )
     if len(files) < n:
         print(f"[sample] WARN group {rel_dir}: only {len(files)} images (< {n})")
+    files = [p for p in files if p.name not in (exclude or set())]
+    if len(files) < n:
+        print(
+            f"[sample] WARN group {rel_dir}: only {len(files)} images after exclude (< {n})"
+        )
     chosen = rng.sample(files, min(n, len(files)))
     return chosen
 
@@ -53,7 +58,20 @@ def main():
         "--max-side", type=int, default=1280, help="downscale longest side (0=keep)"
     )
     ap.add_argument("--out", required=True, help="output work set root")
+    ap.add_argument(
+        "--exclude-file",
+        default=None,
+        help="file with source basenames to exclude (one per line)",
+    )
     args = ap.parse_args()
+
+    exclude = set()
+    if args.exclude_file:
+        exclude = {
+            ln.strip()
+            for ln in Path(args.exclude_file).read_text(encoding="utf-8").splitlines()
+            if ln.strip()
+        }
 
     data = Path(args.data)
     out = Path(args.out)
@@ -65,11 +83,16 @@ def main():
 
     manifest = []
     for slug, rel in groups.items():
-        chosen = sample_group(data, rel, args.per_group, rng)
+        chosen = sample_group(data, rel, args.per_group, rng, exclude)
         gdir = out / slug
         gdir.mkdir(parents=True, exist_ok=True)
         for src in chosen:
-            img = _to_rgb(Image.open(src))
+            try:
+                img = _to_rgb(Image.open(src))
+                img.load()
+            except Exception as e:
+                print(f"[sample] WARN skip unreadable {src}: {e}")
+                continue
             w, h = img.size
             if args.max_side and max(w, h) > args.max_side:
                 scale = args.max_side / max(w, h)
