@@ -14,7 +14,7 @@
 
 ## Current Status
 
-Running（阶段三：电梯场景泛化验证。编排与工具已落地，教师标注 + YOLO 交叉校验完成；**待用户执行人工视觉复核**（reviewer.html）后回灌出真实跨域 F1）
+Running（阶段四：两轮车交叉标注与审核训练闭环（方向调整重启）。2 类域（电动车/单车）教师标注 + YOLO 交叉校验 + 复核工件 + 伪标签基线训练完成；**待用户复核 120 两轮车图**后回灌重训）
 
 ---
 
@@ -65,13 +65,15 @@ Running（阶段三：电梯场景泛化验证。编排与工具已落地，教�
 
 - [电梯] 编排工具化（scripts/elevator/）：sample_dataset.py（分层采样150图）、run_annotate_elevator.sh（教师零样本163框）、run_crosscheck_elevator.sh（YOLO交叉校验）、analyze_agreement.py（best-IoU分析）、make_review_artifacts.py + reviewer_template.html（复核工件）；数据审计（LBD 标注失配）；教师-YOLO 跨域一致率 9.8%；报告 11 落盘
 
+- [两轮车闭环] 方向调整重启（报告 12）：2 类域（electric scooter/bicycle）；elevator_sample_tw 120 图；教师 124 框（64/60）；cross_check/analyze 修复 model.names 映射；YOLO 交叉一致率 5.6%（bicycle 0/60 未确认）；复核工件（YOLO 煤气罐已过滤）；伪标签基线 tw_run_v1（val mAP50 0.43 / mAP50-95 0.279）
+
 ## In Progress
 
 - [完成] 真实标注反馈闭环（报告 07）：修正策略 → detect_v2 → run_v2 重训 → 双模型 eval；工作表+可视化待用户视觉复核
 - [完成] YOLO 选型调研（报告 08）：Ultralytics + YOLO26（n/s 边缘 / s/m 训练），双场景矩阵与风险
 - [完成] YOLO 训推框架（报告 09）：WSL yolo env（ultralytics 8.4.118）+ yolo_detect 数据集 + YOLO26s 微调（val mAP50/50-95=0.995）+ 推理/ONNX/TRT FP16 导出（4.1ms/帧）
 - [完成] 闭环工作流设计（报告 10）：教师-批评者-人工裁决-重训-导出；收敛准则；skill 草案 + cross_check.py 实现（教师-YOLO 一致率机制验证）
-- [进行中·待用户] 电梯场景人工视觉复核（150 图）：outputs/elevator_review/reviewer.html + 工作表；复核后回灌 → 真实跨域 F1 + 电梯场景 YOLO 训练
+- [进行中·待用户] 两轮车人工复核（120 图）：outputs/elevator_review_tw/reviewer.html（http://127.0.0.1:8766）；复核重点=bicycle 60 框类别真伪 + teacher_only 112；回灌 → 2 类人工 GT → tw_run_v2 重训对比
 - [待确认] 已标注/ 下 2408 份 LBD_B_2411_* 人工 txt 与图片失配（无同名图）——若找回原图/映射可直接做人工 GT 评估
 - [规划] 目标设备导出（Jetson/RKNN/Hailo）+ INT8 精度回归；双卡 DDP 进阶
 
@@ -114,6 +116,8 @@ Running（阶段三：电梯场景泛化验证。编排与工具已落地，教�
 
 - [2026-08-16 16:2x] 修复复核器框渲染 bug：根因=归一化坐标误乘 sx(=canvas/natural) 而非 canvas 宽高，导致框被压缩到左上角；改为乘以 cv.width/cv.height（教师框/YOLO 框/漏检框/调试期望全部修正），已用 debuginfo 验证单框/多框绘制位置正确
 
+- [2026-08-16 17:0x] 调整一下任务方向：我发现多类别存在明显命名混淆，且教师模型对煤气罐vs电瓶的区分能力弱，因此当前我们只做电动车（ebike, scooter）和单车（bicycle, ebikelike）的交叉标注和审核训练闭环，请重启该阶段任务。
+
 ## User Requests
 
 - [2026-08-04 15:16] 探查C:\Dev\locate_anything\Eagle\Embodied：locate anything源码。权重已经落盘本地：C:\Data\LocateAnything-3B
@@ -140,6 +144,11 @@ Running（阶段三：电梯场景泛化验证。编排与工具已落地，教�
 - [2026-08-16 15:2x] 建分支 feat/codex/elevator；采样 150 图（5 组×30，seed42，≤1280px）；教师零样本标注 163 框（gas60/scooter60/bike43）
 - [2026-08-16 15:3x] YOLO26s 批评者交叉校验：一致率 9.8%（73% 教师框 best-IoU<0.2，YOLO 无 bicycle）；1280 复测 4.9%
 - [2026-08-16 15:4x] 复核工件生成：reviewer.html（交互式快捷键裁决）+ review_worksheet.{csv,md} + montage；报告 11 落盘；模型路径迁移 ~/data/ 已确认
+
+- [2026-08-16 17:0x] 用户调整方向：只做两轮车（电动车/单车）交叉标注与审核训练闭环，排除煤气罐（教师煤气罐vs电瓶区分弱 + 多类别命名混淆）
+- [2026-08-16 17:1x] 修复 cross_check/analyze_agreement 的 YOLO 类别映射（model.names）；建 elevator_sample_tw（120 图，2 类）；教师 2 类标注 124 框（scooter 64/bicycle 60）
+- [2026-08-16 17:2x] YOLO 交叉校验：一致率 5.6%（bicycle 60 全 teacher_only）；复核工件生成（YOLO gas 过滤）；两轮车 YOLO 数据集 yolo_detect_tw（108+12）
+- [2026-08-16 17:3x] 伪标签基线 tw_run_v1 训练完成（early-stop@96，val mAP50 0.43）；报告 12 落盘
 
 ## Timeline
 

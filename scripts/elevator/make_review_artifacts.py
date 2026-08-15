@@ -100,7 +100,11 @@ def main():
         v = cross.get(rel)
         y_boxes = []
         if v:
-            y_boxes = [x["yolo"] for x in v if x["yolo"] is not None]
+            y_boxes = [
+                x["yolo"]
+                for x in v
+                if x["yolo"] is not None and x["yolo"]["class"] in classes
+            ]
         box_meta = []
         for i, b in enumerate(t_boxes):
             verdict = None

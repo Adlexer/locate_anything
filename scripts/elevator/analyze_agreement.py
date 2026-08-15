@@ -72,7 +72,10 @@ def main():
                         )
         res = model.predict(str(p), imgsz=args.imgsz, verbose=False)[0]
         yboxes = [
-            {"cls": names[int(b.cls)], "box": [float(v) for v in b.xyxyn[0].tolist()]}
+            {
+                "cls": model.names[int(b.cls)],
+                "box": [float(v) for v in b.xyxyn[0].tolist()],
+            }
             for b in res.boxes
         ]
         n = {

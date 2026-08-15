@@ -146,7 +146,7 @@ def main():
         res = model.predict(str(p), imgsz=args.imgsz, conf=args.conf, verbose=False)[0]
         yolo_boxes = [
             {
-                "class": names[int(b.cls)],
+                "class": model.names[int(b.cls)],
                 "xyxy": [float(v) for v in b.xyxyn[0].tolist()],
                 "conf": round(float(b.conf), 4),
             }

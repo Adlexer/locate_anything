@@ -33,6 +33,8 @@ Not Finished（巩固阶段已完成，等待后续任务继续）
 
 - [2026-08-16] 电梯场景泛化验证编排里程碑：新增 scripts/elevator/ 全套工具（采样/标注 runner/交叉校验/一致率分析/复核工件生成 + 交互式 HTML 复核器）；完成 150 图采样与教师零样本标注（163 框）；YOLO26s 交叉校验揭示跨域一致率仅 9.8%（73% 教师框 best-IoU<0.2，YOLO 不输出 bicycle）；审计发现 LBD_B_2411_* 人工标注与图片失配；复核工件（reviewer.html/工作表/拼图）已交付，报告 11 落盘
 
+- [2026-08-16] 两轮车闭环方向调整里程碑（报告 12）：类别域收敛 2 类（electric scooter / bicycle），排除煤气罐；两轮车子集 elevator_sample_tw（120 图）；教师 2 类零样本标注 124 框（scooter 64 / bicycle 60）；修复 cross_check/analyze 的 YOLO 类别映射（model.names，防 2 类错位）；教师-YOLO 交叉一致率 5.6%（bicycle 0/60 未确认）；复核工件（reviewer.html 120 图 + 工作表，YOLO 煤气罐框过滤）；教师伪标签 YOLO26s 基线 tw_run_v1 完成（early-stop@96，val mAP50 0.43 / mAP50-95 0.279，R 0.354 弱基线待人工复核修正）
+
 ## Summary
 
 - 预研任务（探查 → 环境 → 真实图冒烟 → 报告）与巩固任务（权重本地化 + FA + la_flash + 环境导出 + 生成模式对比 + infer.py CLI）全部完成并交付；LocateAnything 在 WSL + RTX 5060 Ti 上形成「加载 2.9s、detect 1.45s、4.1 BPS」的最终推理基线
